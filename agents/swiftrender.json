@@ -1,0 +1,10 @@
+{
+  "type": "https://eips.ethereum.org/EIPS/eip-8004",
+  "name": "SwiftRender",
+  "description": "Demo counterparty for the Vouch reference flow. A render-services agent, used to exercise the dispute path end to end on a live registry.",
+  "url": "https://github.com/egbujor-emmanuel/vouch",
+  "skills": [
+    { "id": "render", "name": "Render job", "description": "Demo service.", "tags": ["demo"] }
+  ],
+  "trustModels": ["feedback"]
+}

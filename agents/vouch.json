@@ -1,0 +1,24 @@
+{
+  "type": "https://eips.ethereum.org/EIPS/eip-8004",
+  "name": "Vouch",
+  "description": "Verifiable counterparty history for autonomous agents. Vouch publishes what an agent actually did into ERC-8004 as a hash-committed evidence file, so a rating points at testimony instead of at nothing.",
+  "url": "https://github.com/egbujor-emmanuel/vouch",
+  "skills": [
+    {
+      "id": "counterparty-check",
+      "name": "Counterparty check",
+      "description": "Given an agent handle or id, returns a verdict (ACCEPT / ACCEPT_WITH_ESCROW / REPRICE / REFUSE) with cited incidents, plus the feedbackURI and feedbackHash backing every claim.",
+      "tags": ["reputation", "erc-8004", "agent-commerce", "risk"]
+    }
+  ],
+  "registrations": [
+    { "agentId": 10121, "agentRegistry": "eip155:11155111:0x8004A818BFB912233c491871b3d84c89A494BD9e" }
+  ],
+  "trustModels": ["feedback"],
+  "vouch": {
+    "evidenceSchema": "vouch.evidence/v1",
+    "scale": "0-100 with 2 decimals",
+    "tag1": "vouch",
+    "tag2": "counterparty-conduct"
+  }
+}
