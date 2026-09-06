@@ -255,6 +255,31 @@ class Chain:
 
     # ---- write (needs a funded key and an explicit call) -----------------
 
+    def register_agent(self, agent_uri: str, timeout: int = 240) -> int:
+        """Register an ERC-8004 identity and return the new agentId.
+
+        The registry is an ERC-721, so the id arrives as tokenId in the mint
+        Transfer log rather than as the first topic of the Registered event.
+        """
+        if self.account is None:
+            raise RuntimeError("no private key configured; this client is read-only")
+        fn = self.identity.functions.register(agent_uri)
+        tx = fn.build_transaction({
+            "from": self.account.address,
+            "nonce": self.w3.eth.get_transaction_count(self.account.address),
+            "chainId": self.cfg["chain_id"],
+        })
+        signed = self.account.sign_transaction(tx)
+        raw = getattr(signed, "raw_transaction", None) or signed.rawTransaction
+        receipt = self.w3.eth.wait_for_transaction_receipt(
+            self.w3.eth.send_raw_transaction(raw), timeout=timeout
+        )
+        transfer = self.w3.keccak(text="Transfer(address,address,uint256)")
+        for log in receipt["logs"]:
+            if len(log["topics"]) == 4 and log["topics"][0] == transfer:
+                return int(log["topics"][3].hex(), 16)
+        raise RuntimeError("register() succeeded but no agentId was found in the logs")
+
     def give_feedback(
         self,
         agent_id: int,
@@ -270,6 +295,8 @@ class Chain:
     ) -> str:
         if self.account is None:
             raise RuntimeError("no private key configured; this client is read-only")
+        # The registry rejects rating an agent you own ("Self-feedback not
+        # allowed"), so issuer and subject must be different owners.
         fh = feedback_hash
         if isinstance(fh, str):
             fh = bytes.fromhex(fh[2:] if fh.startswith("0x") else fh)

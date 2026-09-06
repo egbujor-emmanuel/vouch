@@ -115,7 +115,11 @@ def cmd_seed(args) -> int:
 
     rule("SEAL THE EVIDENCE")
     store = EvidenceStore()
-    receipt = build_and_store(store, memory=mem, handle="swiftrender", verdict=v, issuer=issuer())
+    # Re-decide first: the evidence must carry the verdict as it stands *after*
+    # the incident, not the one made before it. Sealing a stale verdict would
+    # publish "ACCEPT" alongside testimony of a dispute.
+    current = eng.decide("swiftrender", standard_price_usd=25.0)
+    receipt = build_and_store(store, memory=mem, handle="swiftrender", verdict=current, issuer=issuer())
     value, decimals = score_from_counterparty(mem.get_counterparty("swiftrender"))
     kv("evidence file", receipt["filename"])
     kv("bytes", receipt["bytes"])
