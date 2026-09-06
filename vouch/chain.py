@@ -180,9 +180,23 @@ class Chain:
         except Exception:
             return False
 
-    def summary(self, agent_id: int, tag1: str = "", tag2: str = "") -> dict[str, Any]:
+    def summary(
+        self,
+        agent_id: int,
+        tag1: str = "",
+        tag2: str = "",
+        clients: list[str] | None = None,
+    ) -> dict[str, Any]:
+        # The registry reverts with "clientAddresses required" on an empty list,
+        # so resolve the full client set first when the caller does not supply one.
+        addrs = clients if clients else self.clients(agent_id)
+        if not addrs:
+            return {
+                "agent_id": agent_id, "count": 0, "value": 0,
+                "value_decimals": 0, "score": None,
+            }
         count, value, decimals = self.reputation.functions.getSummary(
-            agent_id, [], tag1, tag2
+            agent_id, addrs, tag1, tag2
         ).call()
         return {
             "agent_id": agent_id,
@@ -195,7 +209,15 @@ class Chain:
     def clients(self, agent_id: int) -> list[str]:
         return self.reputation.functions.getClients(agent_id).call()
 
-    def all_feedback(self, agent_id: int, include_revoked: bool = False) -> list[FeedbackRecord]:
+    def all_feedback(
+        self,
+        agent_id: int,
+        include_revoked: bool = False,
+        clients: list[str] | None = None,
+    ) -> list[FeedbackRecord]:
+        addrs = clients if clients else self.clients(agent_id)
+        if not addrs:
+            return []
         (
             clients,
             indexes,
@@ -205,7 +227,7 @@ class Chain:
             tag2s,
             revoked,
         ) = self.reputation.functions.readAllFeedback(
-            agent_id, [], "", "", include_revoked
+            agent_id, addrs, "", "", include_revoked
         ).call()
         return [
             FeedbackRecord(
