@@ -218,6 +218,19 @@ class VouchMemory:
     def search(self, query: str, limit: int = 20):
         return self.m.search(query, limit=limit)
 
+    def close(self) -> None:
+        """Release the SQLite handle. Windows will not unlink an open file."""
+        try:
+            self.m.storage.close()
+        except Exception:
+            pass
+
+    def __enter__(self) -> "VouchMemory":
+        return self
+
+    def __exit__(self, *exc) -> None:
+        self.close()
+
     def stats(self) -> dict[str, Any]:
         return {
             "db_path": self.db_path,
