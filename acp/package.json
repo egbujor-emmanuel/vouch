@@ -1,0 +1,14 @@
+{
+  "name": "vouch-acp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Virtuals ACP seller agent whose accept/refuse decision comes from Vouch memory",
+  "scripts": {
+    "simulate": "node seller.js --simulate",
+    "start": "node seller.js"
+  },
+  "dependencies": {
+    "@virtuals-protocol/acp-node-v2": "^2.0.0"
+  }
+}

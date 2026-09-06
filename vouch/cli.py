@@ -282,6 +282,115 @@ def cmd_sibyl(args) -> int:
     return 0
 
 
+# ------------------------------------------------- machine-readable API
+# These three commands are the integration surface. Any agent in any language
+# can shell out to them; the ACP bridge in acp/ does exactly that.
+
+
+def cmd_decide(args) -> int:
+    """Should I take this job? Reads memory, returns a verdict as JSON."""
+    with VouchMemory(args.db or DB) as mem:
+        verdict = TrustEngine(mem).decide(
+            args.handle, standard_price_usd=args.price, job_ref=args.job_ref
+        )
+    out = verdict.to_dict()
+    out["headline"] = verdict.headline()
+    print(json.dumps(out, indent=None if args.compact else 2))
+    return 0
+
+
+def cmd_record(args) -> int:
+    """Log what a counterparty did. This is the write that makes the next call differ."""
+    with VouchMemory(args.db or DB) as mem:
+        mem.upsert_counterparty(args.handle, agent_id=args.agent_id, address=args.address)
+        if args.kind in ("dispute", "fraud", "nonpayment"):
+            cp = mem.get_counterparty(args.handle) or {}
+            mem.upsert_counterparty(
+                args.handle, jobs_disputed=int(cp.get("jobs_disputed", 0)) + 1
+            )
+        elif args.kind == "completed":
+            cp = mem.get_counterparty(args.handle) or {}
+            mem.upsert_counterparty(
+                args.handle, jobs_completed=int(cp.get("jobs_completed", 0)) + 1
+            )
+        event_id = mem.record_incident(
+            args.handle, kind=args.kind, detail=args.detail, job_ref=args.job_ref
+        )
+        if args.flag:
+            mem.flag(args.handle, reason=args.detail)
+        cp = mem.get_counterparty(args.handle)
+    print(json.dumps({"event_id": event_id, "counterparty": cp}, indent=2))
+    return 0
+
+
+def cmd_rate(args) -> int:
+    """Build the evidence file for a counterparty and optionally publish it."""
+    with VouchMemory(args.db or DB) as mem:
+        verdict = TrustEngine(mem).decide(args.handle, standard_price_usd=args.price)
+        store = EvidenceStore()
+        receipt = build_and_store(
+            store, memory=mem, handle=args.handle, verdict=verdict, issuer=ISSUER
+        )
+        cp = mem.get_counterparty(args.handle) or {}
+    value, decimals = score_from_counterparty(cp)
+    result = {
+        "handle": args.handle,
+        "score": value / 10**decimals,
+        "erc8004": {
+            "value": value,
+            "valueDecimals": decimals,
+            "tag1": VOUCH_TAG1,
+            "tag2": VOUCH_TAG2,
+            "feedbackURI": receipt["uri"],
+            "feedbackHash": receipt["hash"],
+        },
+        "evidence_path": receipt["path"],
+        "bytes": receipt["bytes"],
+        "published": False,
+    }
+    if args.publish:
+        from .chain import Chain
+
+        key = os.environ.get("VOUCH_PRIVATE_KEY")
+        subject = args.subject_agent_id or os.environ.get("VOUCH_SUBJECT_AGENT_ID")
+        if not key or not subject:
+            result["error"] = "publishing needs VOUCH_PRIVATE_KEY and --subject-agent-id"
+            print(json.dumps(result, indent=2))
+            return 2
+        chain = Chain(args.network, private_key=key)
+        tx = chain.give_feedback(
+            int(subject), value=value, value_decimals=decimals,
+            tag1=VOUCH_TAG1, tag2=VOUCH_TAG2, endpoint="",
+            feedback_uri=receipt["uri"], feedback_hash=receipt["hash"],
+        )
+        result["published"] = True
+        result["tx"] = tx
+        result["explorer"] = chain.explorer_tx(tx)
+    print(json.dumps(result, indent=2))
+    return 0
+
+
+def cmd_lookup(args) -> int:
+    """What does memory know about this counterparty? JSON, for other agents."""
+    with VouchMemory(args.db or DB) as mem:
+        cp = mem.get_counterparty(args.handle)
+        flagged = mem.is_flagged(args.handle)
+        incidents = mem.incidents(args.handle)
+    print(json.dumps({
+        "handle": args.handle,
+        "known": cp is not None,
+        "counterparty": cp,
+        "flagged": flagged,
+        "incidents": [
+            {"ts": e.get("ts") or e.get("created_at"),
+             "kind": (e.get("extra") or {}).get("kind"),
+             "acted": e.get("acted")}
+            for e in incidents
+        ],
+    }, indent=2, default=str))
+    return 0
+
+
 # ------------------------------------------------------------------ main
 
 def main(argv=None) -> int:
@@ -302,6 +411,41 @@ def main(argv=None) -> int:
     ):
         q = sub.add_parser(name, help=helptext)
         q.set_defaults(func=fn)
+
+    # --- machine-readable API (the adapter surface) ---
+    d = sub.add_parser("decide", help="[json] should I take this job?")
+    d.add_argument("--handle", required=True)
+    d.add_argument("--price", type=float, default=0.0)
+    d.add_argument("--job-ref", default=None)
+    d.add_argument("--db", default=None)
+    d.add_argument("--compact", action="store_true")
+    d.set_defaults(func=cmd_decide)
+
+    r = sub.add_parser("record", help="[json] log what a counterparty did")
+    r.add_argument("--handle", required=True)
+    r.add_argument("--kind", required=True,
+                   choices=["dispute", "fraud", "nonpayment", "completed", "note"])
+    r.add_argument("--detail", required=True)
+    r.add_argument("--job-ref", default=None)
+    r.add_argument("--agent-id", type=int, default=None)
+    r.add_argument("--address", default=None)
+    r.add_argument("--flag", action="store_true", help="also add to the FLAGGED tier")
+    r.add_argument("--db", default=None)
+    r.set_defaults(func=cmd_record)
+
+    ra = sub.add_parser("rate", help="[json] build the evidence file, optionally publish")
+    ra.add_argument("--handle", required=True)
+    ra.add_argument("--price", type=float, default=0.0)
+    ra.add_argument("--publish", action="store_true")
+    ra.add_argument("--subject-agent-id", type=int, default=None)
+    ra.add_argument("--network", default="base-sepolia", choices=["base", "base-sepolia"])
+    ra.add_argument("--db", default=None)
+    ra.set_defaults(func=cmd_rate)
+
+    lk = sub.add_parser("lookup", help="[json] what does memory know about this agent?")
+    lk.add_argument("--handle", required=True)
+    lk.add_argument("--db", default=None)
+    lk.set_defaults(func=cmd_lookup)
 
     _setup_console()
     args = p.parse_args(argv)
