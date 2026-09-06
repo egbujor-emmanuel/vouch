@@ -8,21 +8,20 @@ there to catch.
 
 from __future__ import annotations
 
-import json
 import os
 from pathlib import Path
 from typing import Any
 
 from .evidence import build_evidence, seal
 
-DEFAULT_DIR = Path(os.environ.get("VOUCH_EVIDENCE_DIR", "evidence"))
-DEFAULT_BASE_URL = os.environ.get("VOUCH_EVIDENCE_BASE_URL", "").rstrip("/")
-
-
 class EvidenceStore:
-    def __init__(self, directory: Path | str = DEFAULT_DIR, base_url: str = DEFAULT_BASE_URL):
-        self.dir = Path(directory)
-        self.base_url = base_url.rstrip("/")
+    def __init__(self, directory: Path | str | None = None, base_url: str | None = None):
+        # Read the environment at construction, not at import: the CLI loads
+        # .env after this module is imported.
+        self.dir = Path(directory or os.environ.get("VOUCH_EVIDENCE_DIR", "evidence"))
+        self.base_url = (
+            base_url if base_url is not None else os.environ.get("VOUCH_EVIDENCE_BASE_URL", "")
+        ).rstrip("/")
         self.dir.mkdir(parents=True, exist_ok=True)
 
     def put(self, evidence: dict[str, Any]) -> dict[str, Any]:

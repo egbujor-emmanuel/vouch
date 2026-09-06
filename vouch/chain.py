@@ -33,7 +33,24 @@ BASE_SEPOLIA = {
     "explorer": "https://sepolia.basescan.org",
 }
 
-NETWORKS = {"base": BASE_MAINNET, "base-sepolia": BASE_SEPOLIA}
+# The registries are CREATE2-deployed, so testnet addresses are identical across
+# chains. Ethereum Sepolia is kept as a validation target: it lets the full
+# write path be proven on a chain where faucet ETH is easy to come by, without
+# changing a line of the code that runs on Base.
+ETHEREUM_SEPOLIA = {
+    "name": "ethereum-sepolia",
+    "chain_id": 11155111,
+    "rpc": os.environ.get("ETH_SEPOLIA_RPC_URL", "https://ethereum-sepolia-rpc.publicnode.com"),
+    "identity": "0x8004A818BFB912233c491871b3d84c89A494BD9e",
+    "reputation": "0x8004B663056A597Dffe9eCcC1965A193B7388713",
+    "explorer": "https://sepolia.etherscan.io",
+}
+
+NETWORKS = {
+    "base": BASE_MAINNET,
+    "base-sepolia": BASE_SEPOLIA,
+    "ethereum-sepolia": ETHEREUM_SEPOLIA,
+}
 
 # SIBYL's own on-chain identity, used by the demo to read a real record.
 SIBYL_AGENT_ID = 20880

@@ -26,15 +26,30 @@ from .evidence import verify_json, seal
 from .publish import EvidenceStore, build_and_store, score_from_counterparty, VOUCH_TAG1, VOUCH_TAG2
 
 DB = os.environ.get("VOUCH_DB", ".vouch/demo.db")
-ISSUER = {
-    "handle": "attrito.vouch",
-    "agent_id": int(os.environ["VOUCH_AGENT_ID"]) if os.environ.get("VOUCH_AGENT_ID") else None,
-    "address": os.environ.get("VOUCH_ADDRESS", "0x0000000000000000000000000000000000000A11"),
-}
+def issuer() -> dict:
+    """Built lazily so .env is loaded first."""
+    return {
+        "handle": os.environ.get("VOUCH_HANDLE", "attrito.vouch"),
+        "agent_id": int(os.environ["VOUCH_AGENT_ID"]) if os.environ.get("VOUCH_AGENT_ID") else None,
+        "address": os.environ.get("VOUCH_ADDRESS", "0x0000000000000000000000000000000000000A11"),
+    }
 
 BOLD, DIM, RED, GRN, YEL, CYN, RST = (
     "\033[1m", "\033[2m", "\033[31m", "\033[32m", "\033[33m", "\033[36m", "\033[0m"
 )
+
+
+def _load_env(path: str = ".env") -> None:
+    """Minimal .env loader. Real environment variables always win."""
+    p = Path(path)
+    if not p.exists():
+        return
+    for line in p.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        k, v = line.split("=", 1)
+        os.environ.setdefault(k.strip(), v.strip())
 
 
 def _setup_console() -> None:
@@ -100,7 +115,7 @@ def cmd_seed(args) -> int:
 
     rule("SEAL THE EVIDENCE")
     store = EvidenceStore()
-    receipt = build_and_store(store, memory=mem, handle="swiftrender", verdict=v, issuer=ISSUER)
+    receipt = build_and_store(store, memory=mem, handle="swiftrender", verdict=v, issuer=issuer())
     value, decimals = score_from_counterparty(mem.get_counterparty("swiftrender"))
     kv("evidence file", receipt["filename"])
     kv("bytes", receipt["bytes"])
@@ -329,7 +344,7 @@ def cmd_rate(args) -> int:
         verdict = TrustEngine(mem).decide(args.handle, standard_price_usd=args.price)
         store = EvidenceStore()
         receipt = build_and_store(
-            store, memory=mem, handle=args.handle, verdict=verdict, issuer=ISSUER
+            store, memory=mem, handle=args.handle, verdict=verdict, issuer=issuer()
         )
         cp = mem.get_counterparty(args.handle) or {}
     value, decimals = score_from_counterparty(cp)
@@ -400,7 +415,7 @@ def main(argv=None) -> int:
     s = sub.add_parser("seed", help="session 1: work with an agent and log it")
     s.add_argument("--keep", action="store_true", help="append to an existing store")
     s.add_argument("--publish", action="store_true", help="write the rating on-chain")
-    s.add_argument("--network", default="base-sepolia", choices=["base", "base-sepolia"])
+    s.add_argument("--network", default="base-sepolia", choices=["base", "base-sepolia", "ethereum-sepolia"])
     s.set_defaults(func=cmd_seed)
 
     for name, fn, helptext in (
@@ -438,7 +453,7 @@ def main(argv=None) -> int:
     ra.add_argument("--price", type=float, default=0.0)
     ra.add_argument("--publish", action="store_true")
     ra.add_argument("--subject-agent-id", type=int, default=None)
-    ra.add_argument("--network", default="base-sepolia", choices=["base", "base-sepolia"])
+    ra.add_argument("--network", default="base-sepolia", choices=["base", "base-sepolia", "ethereum-sepolia"])
     ra.add_argument("--db", default=None)
     ra.set_defaults(func=cmd_rate)
 
@@ -447,6 +462,7 @@ def main(argv=None) -> int:
     lk.add_argument("--db", default=None)
     lk.set_defaults(func=cmd_lookup)
 
+    _load_env()
     _setup_console()
     args = p.parse_args(argv)
     try:
