@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+.tmp/
+*.db
+*.db-wal
+*.db-shm
+.env
+.env.*
+!.env.example
+node_modules/
+evidence_out/
