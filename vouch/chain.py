@@ -266,7 +266,7 @@ class Chain:
         fn = self.identity.functions.register(agent_uri)
         tx = fn.build_transaction({
             "from": self.account.address,
-            "nonce": self.w3.eth.get_transaction_count(self.account.address),
+            "nonce": self.w3.eth.get_transaction_count(self.account.address, "pending"),
             "chainId": self.cfg["chain_id"],
         })
         signed = self.account.sign_transaction(tx)
@@ -309,7 +309,7 @@ class Chain:
         tx = fn.build_transaction(
             {
                 "from": self.account.address,
-                "nonce": self.w3.eth.get_transaction_count(self.account.address),
+                "nonce": self.w3.eth.get_transaction_count(self.account.address, "pending"),
                 "chainId": self.cfg["chain_id"],
             }
         )

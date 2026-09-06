@@ -140,12 +140,18 @@ def _publish(receipt, value, decimals, args) -> int:
     from .chain import Chain
 
     key = os.environ.get("VOUCH_PRIVATE_KEY")
-    agent_id = os.environ.get("VOUCH_SUBJECT_AGENT_ID")
+    # Agent ids are per-network: the same agent has a different id on Base than
+    # on Sepolia, so publishing with the wrong one would rate a stranger.
+    suffix = args.network.replace("-", "_").upper()
+    agent_id = os.environ.get(f"VOUCH_SUBJECT_AGENT_ID_{suffix}") or os.environ.get(
+        "VOUCH_SUBJECT_AGENT_ID"
+    )
     if not key:
         print(f"  {RED}--publish needs VOUCH_PRIVATE_KEY{RST}")
         return 2
     if not agent_id:
-        print(f"  {RED}--publish needs VOUCH_SUBJECT_AGENT_ID (the agent being rated){RST}")
+        print(f"  {RED}--publish needs VOUCH_SUBJECT_AGENT_ID_{suffix}{RST}")
+        print(f"  {DIM}run: python scripts/bootstrap_chain.py --network {args.network}{RST}")
         return 2
     chain = Chain(args.network, private_key=key)
     rule(f"PUBLISH TO {args.network.upper()}")
@@ -157,6 +163,48 @@ def _publish(receipt, value, decimals, args) -> int:
     )
     kv("tx", chain.explorer_tx(tx))
     return 0
+
+
+def cmd_publish(args) -> int:
+    """Publish the newest sealed evidence file on-chain.
+
+    Separate from `seed` on purpose: the evidence has to be reachable at its URI
+    before the hash is committed, so the normal order is seed, push, publish.
+    """
+    store = EvidenceStore()
+    files = store.list()
+    if not files:
+        print(f"{RED}no evidence files — run `python -m vouch seed` first{RST}")
+        return 1
+    newest = max((store.dir / f for f in files), key=lambda p: p.stat().st_mtime)
+    digest = "0x" + newest.stem
+    uri = f"{store.base_url}/{newest.name}" if store.base_url else f"file://{newest.resolve()}"
+
+    if args.check_uri and store.base_url:
+        import urllib.request
+
+        from .evidence import verify_json
+
+        try:
+            blob = urllib.request.urlopen(uri, timeout=30).read()
+        except Exception as e:
+            print(f"{RED}evidence URI is not reachable: {type(e).__name__}{RST}")
+            print(f"{DIM}push the evidence/ directory first, or pass --no-check-uri{RST}")
+            return 1
+        if not verify_json(json.loads(blob), digest):
+            print(f"{RED}served bytes do not match the digest — refusing to publish{RST}")
+            return 1
+        print(f"  {GRN}URI reachable and verifies{RST}")
+
+    mem = VouchMemory(DB)
+    cp = mem.get_counterparty(args.handle) or {}
+    value, decimals = score_from_counterparty(cp)
+
+    class _R(dict):
+        pass
+
+    receipt = _R(hash=digest, uri=uri, filename=newest.name)
+    return _publish(receipt, value, decimals, args)
 
 
 # ------------------------------------------------------------ coldstart
@@ -421,6 +469,14 @@ def main(argv=None) -> int:
     s.add_argument("--publish", action="store_true", help="write the rating on-chain")
     s.add_argument("--network", default="base-sepolia", choices=["base", "base-sepolia", "ethereum-sepolia"])
     s.set_defaults(func=cmd_seed)
+
+    q = sub.add_parser("publish", help="publish the newest sealed evidence on-chain")
+    q.add_argument("--network", default="base-sepolia",
+                   choices=["base", "base-sepolia", "ethereum-sepolia"])
+    q.add_argument("--handle", default="swiftrender")
+    q.add_argument("--no-check-uri", dest="check_uri", action="store_false",
+                   help="skip verifying the URI resolves before committing the hash")
+    q.set_defaults(func=cmd_publish, check_uri=True)
 
     for name, fn, helptext in (
         ("coldstart", cmd_coldstart, "session 2: fresh process, memory changes the call"),
