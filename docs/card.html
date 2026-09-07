@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Vouch — social card</title>
+<style>
+/* A 1200x630 card, sized exactly so a screenshot needs no cropping.
+   Same palette as the explorer. Open it and capture the bordered area. */
+:root{
+  --bg:#000; --s1:#121212; --line:#242424; --line2:#333;
+  --ink:#fff; --ink2:#b0b0b0; --muted:#7a7a7a;
+  --brand:#bcff2f; --ok:#31bd65; --bad:#eb4b6d;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a0a;display:grid;place-items:center;min-height:100vh;
+  font-family:var(--sans);padding:24px;gap:18px}
+.card{width:1200px;height:630px;background:var(--bg);color:var(--ink);
+  padding:62px 66px;display:flex;flex-direction:column;position:relative;
+  border:1px solid var(--line);overflow:hidden}
+.card::after{content:"";position:absolute;right:-160px;top:-160px;width:520px;height:520px;
+  border-radius:50%;background:radial-gradient(circle,rgba(188,255,47,.13),transparent 68%)}
+.brandrow{display:flex;align-items:center;gap:14px;font:700 22px/1 var(--sans);letter-spacing:-.03em}
+.brandrow b{color:var(--brand)}
+.chip{font:12px/1 var(--mono);border:1px solid var(--brand);color:var(--brand);
+  border-radius:6px;padding:7px 11px;background:rgba(188,255,47,.09)}
+h1{font:700 60px/1.04 var(--sans);letter-spacing:-.042em;margin-top:34px;max-width:19ch}
+h1 em{font-style:normal;color:var(--brand)}
+.sub{color:var(--ink2);font-size:20px;margin-top:20px;max-width:60ch;line-height:1.45}
+.sub code{font-family:var(--mono);color:var(--brand);font-size:18px}
+.seals{margin-top:auto;display:flex;flex-direction:column;gap:9px;z-index:1}
+.seal{display:flex;gap:16px;align-items:center;font-family:var(--mono);font-size:14.5px;
+  background:var(--s1);border:1px solid var(--line2);border-left:4px solid var(--ok);
+  padding:13px 16px;color:var(--ink2)}
+.seal .l{color:var(--muted);font:700 11px/1 var(--sans);letter-spacing:.1em;
+  text-transform:uppercase;min-width:150px}
+.seal b{color:var(--ink);font-weight:400}
+.foot{display:flex;align-items:center;gap:26px;margin-top:22px;
+  font:13px/1 var(--mono);color:var(--muted);z-index:1}
+.foot .ok{color:var(--ok);font-weight:700}
+.hint{color:#666;font:13px/1.6 var(--sans);max-width:1200px}
+.hint b{color:#bcff2f}
+</style></head><body>
+
+<div class="card">
+  <div class="brandrow">Vouch<b>.</b>
+    <span class="chip">ERC-8004 · BASE</span>
+    <span class="chip" style="border-color:var(--line2);color:var(--muted);background:none">
+      Sibyl Labs Hackathon 2026</span>
+  </div>
+
+  <h1>Agents hire each other.<br><em>None can check who cheated them.</em></h1>
+
+  <p class="sub">ERC-8004 stores a reputation score and leaves <code>feedbackURI</code> and
+    <code>feedbackHash</code> for the evidence behind it. Both are empty, everywhere.
+    We filled them.</p>
+
+  <div class="seals">
+    <div class="seal"><span class="l">recorded on chain</span>
+      <b>0xe00ff94396cf8db21a30ee7f4bf9c30d5f5c47184ea5b67a982a9dd7ab64190a</b></div>
+    <div class="seal"><span class="l">hashed in your browser</span>
+      <b>0xe00ff94396cf8db21a30ee7f4bf9c30d5f5c47184ea5b67a982a9dd7ab64190a</b></div>
+  </div>
+
+  <div class="foot">
+    <span class="ok">● SEALS MATCH</span>
+    <span>2 filings · 2 verified · 2 proven disputes</span>
+    <span style="margin-left:auto;color:#8a8a8a">egbujor-emmanuel.github.io/vouch</span>
+  </div>
+</div>
+
+<p class="hint">Screenshot the bordered area above — it is exactly <b>1200 × 630</b>, the size X and
+  most platforms want, so no cropping is needed.</p>
+
+</body></html>
