@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vouch-agent"
+version = "0.1.0"
+description = "Verifiable counterparty history for autonomous agents. Fills the feedbackURI and feedbackHash that ERC-8004 specifies and leaves empty."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [{ name = "Attrito" }]
+keywords = ["erc-8004", "agents", "reputation", "base", "sibyl-memory", "acp"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Topic :: Software Development :: Libraries",
+]
+
+# web3 is only needed to touch the chain. The memory layer, the decision engine
+# and the evidence format work without it, so an agent that only wants local
+# reasoning does not pull a chain client in.
+dependencies = ["sibyl-memory-client==0.8.0"]
+
+[project.optional-dependencies]
+chain = ["web3>=8.0.0", "eth-account>=0.13.0"]
+dev = ["pytest>=8"]
+
+[project.urls]
+Homepage = "https://github.com/egbujor-emmanuel/vouch"
+Live = "https://egbujor-emmanuel.github.io/vouch/"
+
+# Installing gives you a `vouch` command directly, so another builder never has
+# to clone anything to try it.
+[project.scripts]
+vouch = "vouch.cli:main"
+
+[tool.setuptools]
+packages = ["vouch"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
