@@ -48,6 +48,37 @@ function log(tag, msg) {
  * The core handler. Identical whether events arrive from ACP or the simulator,
  * so the demo path and the production path are the same code.
  */
+
+/** Is this URI actually fetchable right now? */
+async function resolves(url) {
+  if (!url || !/^https?:/.test(url)) return false;
+  try {
+    const r = await fetch(url, { method: "GET", signal: AbortSignal.timeout(8000) });
+    return r.ok;
+  } catch {
+    return false;
+  }
+}
+
+/** The evidence itself, as a data URI.
+ *
+ * Base64 of the exact bytes the seal was computed over, so a buyer can decode
+ * it, hash it, and compare against the seal without fetching anything or
+ * trusting us. Read from disk rather than re-serialised: re-encoding could
+ * change the bytes and break a hash that is otherwise correct.
+ */
+async function inlineEvidence(sealed) {
+  const { readFile } = await import("node:fs/promises");
+  const path = sealed.evidence_path;
+  if (!path) return sealed.erc8004?.feedbackURI ?? "";
+  try {
+    const bytes = await readFile(path);
+    return "data:application/json;base64," + bytes.toString("base64");
+  } catch {
+    return sealed.erc8004?.feedbackURI ?? "";
+  }
+}
+
 export async function onJobEvent(evt) {
   const handle = evt.buyerHandle;
 
@@ -84,13 +115,23 @@ export async function onJobEvent(evt) {
       });
       log("job.funded", `delivering ${evt.jobId}`);
       log("  evidence", sealed.erc8004?.feedbackHash ?? "(none)");
+      // The hosted evidence URI only resolves once the file has been pushed,
+      // so a buyer paying for a check today would receive a link returning
+      // 404 — a pointer to nothing, from the one product that exists to insist
+      // pointers must resolve. Hand back a self-contained data URI instead
+      // whenever the hosted copy is not yet reachable: it always resolves, it
+      // carries the exact bytes the hash was taken over, and it removes the
+      // dependency on a host entirely.
+      const hosted = sealed.erc8004?.feedbackURI;
+      const uri = (await resolves(hosted)) ? hosted : await inlineEvidence(sealed);
+
       return {
         action: "deliver",
         deliverable: JSON.stringify({
           decision: current.decision,
           score: sealed.score,
           citations: current.citations ?? [],
-          feedbackURI: sealed.erc8004?.feedbackURI,
+          feedbackURI: uri,
           feedbackHash: sealed.erc8004?.feedbackHash,
         }),
       };
