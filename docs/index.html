@@ -1,264 +1,326 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Vouch - can this agent be trusted?</title>
-<meta name="description" content="AI agents have started hiring each other, with no way to check who cheated them before. Vouch gives them a shared, tamper-proof record, verified in your browser.">
+<title>VOUCH — case file on an autonomous agent</title>
+<meta name="description" content="AI agents have started hiring each other with no way to check who cheated them before. Vouch is the evidence layer: sworn, hash-sealed records, verified in your browser.">
 <style>
+/* ─────────────────────────────────────────────────────────────
+   THE CASE FILE
+   Paper, not screens. This is a dossier about an agent: sworn
+   statements, exhibit numbers, and stamps that land when a fact
+   is proved. Depth comes from grain and paper edges rather than
+   glow, and the only motion is a stamp arriving.
+   ───────────────────────────────────────────────────────────── */
 :root{
-  --bg:#07090c; --bg2:#0b0f14; --panel:#0e1319; --panel2:#121922;
-  --line:#1b2430; --line2:#26323f;
-  --ink:#eaf0f7; --ink2:#a7b4c4; --dim:#6b7a8c;
-  --ok:#35d99a; --bad:#ff5f6d; --warn:#ffb545; --accent:#6ea8ff;
-  --mono:ui-monospace,"SF Mono","Cascadia Mono",Menlo,Consolas,monospace;
-  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Inter,sans-serif;
-  --r:14px;
+  --paper:#e8e0cf;          /* manila folder            */
+  --page:#faf6ec;           /* the document itself      */
+  --page2:#f3ecdd;
+  --ink:#17140f;            /* typewriter black         */
+  --ink2:#4a4336;
+  --faint:#8a8171;
+  --rule:#cbc0a8;
+  --rule2:#b3a687;
+  --stamp-ok:#1c6b46;       /* green ink                */
+  --stamp-bad:#b8332a;      /* red ink                  */
+  --annot:#26418f;          /* blue pen marginalia      */
+  --tape:rgba(214,200,160,.75);
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --type:"Courier New",Courier,"Nimbus Mono PS",monospace;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--ink);font:15px/1.6 var(--sans);
+body{
+  background:var(--paper);color:var(--ink);
+  font:16px/1.62 var(--serif);
   -webkit-font-smoothing:antialiased;
-  background-image:radial-gradient(1200px 600px at 78% -10%,rgba(110,168,255,.10),transparent 60%),
-                   radial-gradient(900px 500px at 8% 0%,rgba(53,217,154,.06),transparent 55%)}
+  background-image:
+    /* faint folder fibres */
+    repeating-linear-gradient(94deg,rgba(0,0,0,.014) 0 2px,transparent 2px 5px),
+    radial-gradient(1100px 700px at 82% -8%,rgba(120,95,40,.10),transparent 62%);
+}
+/* film grain, cheap and everywhere */
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:9;opacity:.32;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3'/><feColorMatrix type='saturate' values='0'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='.55'/></svg>");
+  mix-blend-mode:multiply;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:0 30px}
 
-/* ---------- shell ---------- */
-.wrap{max-width:1320px;margin:0 auto;padding:0 28px}
-header.top{position:sticky;top:0;z-index:20;backdrop-filter:blur(14px);
-  background:rgba(7,9,12,.82);border-bottom:1px solid var(--line)}
-.top .wrap{display:flex;align-items:center;gap:14px;height:62px}
-.brand{font-size:17px;font-weight:680;letter-spacing:-.01em}
-.brand i{color:var(--accent);font-style:normal}
-.chip{font:11px/1 var(--mono);color:var(--ink2);border:1px solid var(--line2);
-  padding:6px 10px;border-radius:99px;white-space:nowrap;display:inline-flex;
-  align-items:center;gap:6px}
-.dot{width:6px;height:6px;border-radius:99px;background:currentColor;flex:none}
-.chip.live{color:var(--ok)} .chip.off{color:var(--warn)}
-.spacer{margin-left:auto}
+/* ── file header ─────────────────────────────────────────── */
+.filebar{border-bottom:2px solid var(--ink);background:var(--page);
+  position:sticky;top:0;z-index:20;box-shadow:0 1px 0 var(--rule2)}
+.filebar .wrap{display:flex;align-items:center;gap:18px;height:56px;
+  font:12px/1 var(--type);letter-spacing:.09em;text-transform:uppercase}
+.filebar b{font:700 15px/1 var(--type);letter-spacing:.22em}
+.filebar .sp{margin-left:auto}
+.tag{border:1px solid var(--rule2);padding:5px 9px;color:var(--ink2);white-space:nowrap}
+.tag.on{border-color:var(--stamp-ok);color:var(--stamp-ok)}
 
-/* ---------- hero ---------- */
-.hero{padding:74px 0 44px;border-bottom:1px solid var(--line)}
-.kicker{font:12px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;
-  color:var(--accent);margin-bottom:20px}
-h1{font-size:clamp(30px,4.6vw,54px);line-height:1.06;letter-spacing:-.028em;
-  font-weight:700;max-width:20ch}
-h1 em{font-style:normal;color:var(--dim)}
-.lede{margin-top:20px;max-width:60ch;color:var(--ink2);font-size:17px}
-.stats{display:flex;gap:40px;margin-top:38px;flex-wrap:wrap}
-.stat b{display:block;font:600 26px/1.15 var(--sans);letter-spacing:-.02em}
-.stat span{font:11px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;
-  color:var(--dim);margin-top:7px;display:block}
+/* ── cover sheet ─────────────────────────────────────────── */
+.cover{padding:66px 0 46px;position:relative}
+.casebar{display:flex;gap:26px;flex-wrap:wrap;font:11px/1 var(--type);
+  letter-spacing:.16em;text-transform:uppercase;color:var(--faint);
+  border-bottom:1px solid var(--rule);padding-bottom:14px;margin-bottom:34px}
+.casebar b{color:var(--ink)}
+h1{font:400 clamp(40px,8.4vw,104px)/0.92 var(--serif);letter-spacing:-.026em;
+  max-width:15ch;text-wrap:balance}
+h1 .u{border-bottom:3px solid var(--stamp-bad);padding-bottom:2px}
+h1 .sm{display:block;font-size:.42em;line-height:1.24;margin-top:24px;
+  letter-spacing:-.01em;color:var(--ink2);max-width:26ch}
+.deck{margin-top:30px;max-width:62ch;font-size:18.5px;color:var(--ink2)}
+.deck b{color:var(--ink)}
+.cast{display:flex;gap:0;flex-wrap:wrap;margin-top:34px;border-top:1px solid var(--rule)}
+.cast div{flex:1 1 200px;border-bottom:1px solid var(--rule);border-right:1px solid var(--rule);
+  padding:13px 16px 15px;font:11.5px/1.5 var(--type)}
+.cast div:last-child{border-right:0}
+.cast s{display:block;text-decoration:none;color:var(--faint);letter-spacing:.14em;
+  text-transform:uppercase;font-size:10px;margin-bottom:5px}
+.cast b{font-size:13px}
 
-/* ---------- layout ---------- */
-main{padding:36px 0 90px;display:grid;gap:20px;
-  grid-template-columns:repeat(auto-fit,minmax(440px,1fr));align-items:start}
-section{background:linear-gradient(180deg,var(--panel),var(--bg2));
-  border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;
-  transition:border-color .25s}
-section:hover{border-color:var(--line2)}
-section.wide{grid-column:1/-1}
-.h{display:flex;align-items:center;gap:10px;margin-bottom:6px}
-.h h2{font-size:13px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink2);font-weight:600}
-.num{font:11px/1 var(--mono);color:var(--dim);border:1px solid var(--line);
-  border-radius:5px;padding:4px 7px}
-.lede2{color:var(--dim);font-size:13.5px;margin-bottom:18px;max-width:62ch}
+/* ── numbers strip ───────────────────────────────────────── */
+.tally{display:flex;flex-wrap:wrap;margin:38px 0 0;border:1px solid var(--ink)}
+.tally div{flex:1 1 150px;padding:16px 18px;border-right:1px solid var(--rule2);background:var(--page)}
+.tally div:last-child{border-right:0}
+.tally b{display:block;font:400 40px/1 var(--serif);letter-spacing:-.03em}
+.tally s{display:block;text-decoration:none;font:10px/1 var(--type);letter-spacing:.15em;
+  text-transform:uppercase;color:var(--faint);margin-top:9px}
 
-/* ---------- primitives ---------- */
-.row{display:flex;justify-content:space-between;align-items:baseline;gap:16px;
-  padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px}
-.row:last-child{border-bottom:0}
-.k{color:var(--dim);flex:none}
-.v{text-align:right;word-break:break-word}
-.mono{font-family:var(--mono);font-size:12px}
-.badge{display:inline-flex;align-items:center;gap:6px;font:11px/1 var(--mono);
-  padding:5px 10px;border-radius:99px;border:1px solid currentColor;letter-spacing:.05em}
-.ok{color:var(--ok)} .bad{color:var(--bad)} .warn{color:var(--warn)}
-.dimc{color:var(--dim)} .acc{color:var(--accent)}
-button{background:var(--panel2);color:var(--ink);border:1px solid var(--line2);
-  border-radius:9px;padding:10px 16px;font:500 13.5px var(--sans);cursor:pointer;
-  transition:all .18s;margin:0 8px 8px 0}
-button:hover{border-color:var(--accent);color:#fff;transform:translateY(-1px)}
-button:active{transform:none}
-button.primary{background:linear-gradient(180deg,#1b2e4d,#16233a)}
-button[disabled]{opacity:.5;cursor:wait;transform:none}
-a{color:var(--accent);text-decoration:none}
-a:hover{text-decoration:underline}
-.empty{color:var(--dim);font-size:13.5px;padding:16px 0;text-align:center}
-.spin{display:inline-block;width:11px;height:11px;border:2px solid var(--line2);
-  border-top-color:var(--accent);border-radius:99px;animation:sp .7s linear infinite;
-  vertical-align:-1px;margin-right:8px}
-@keyframes sp{to{transform:rotate(360deg)}}
-.fade{animation:fd .32s ease both}
-@keyframes fd{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+/* ── exhibits ────────────────────────────────────────────── */
+main{padding:20px 0 90px}
+.exhibit{background:var(--page);border:1px solid var(--rule2);margin:22px 0;
+  padding:30px 34px 34px;position:relative;
+  box-shadow:2px 3px 0 rgba(120,105,70,.16), 6px 8px 22px rgba(60,50,25,.09)}
+.exhibit::after{content:"";position:absolute;top:-9px;left:50%;transform:translateX(-50%) rotate(-1.4deg);
+  width:104px;height:20px;background:var(--tape);
+  box-shadow:0 1px 2px rgba(90,75,40,.2)}
+.exhibit.tilt-l{transform:rotate(-.28deg)}
+.exhibit.tilt-r{transform:rotate(.22deg)}
+.exno{font:11px/1 var(--type);letter-spacing:.2em;text-transform:uppercase;color:var(--stamp-bad);
+  border-bottom:1px solid var(--rule);padding-bottom:9px;margin-bottom:16px;
+  display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+h2{font:400 clamp(24px,3.1vw,36px)/1.12 var(--serif);letter-spacing:-.018em;margin-bottom:12px}
+.note{border-left:3px solid var(--annot);padding:2px 0 2px 15px;margin:0 0 22px;
+  color:var(--annot);font-size:15px;max-width:74ch;font-style:italic}
+.note b{font-style:normal}
 
-/* ---------- rating cards ---------- */
-.card{border:1px solid var(--line);border-radius:11px;padding:15px 17px;margin:12px 0;
-  background:var(--bg2);position:relative;overflow:hidden}
-.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--line2)}
-.card.verified::before{background:var(--ok)}
-.card.rejected::before{background:var(--bad)}
-.card .top2{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px}
-.score{font:700 30px/1 var(--sans);letter-spacing:-.03em}
-.score small{font:400 13px/1 var(--sans);color:var(--dim);margin-left:3px}
-.quote{border-left:2px solid var(--line2);padding:5px 0 5px 12px;margin:9px 0;
-  color:var(--ink2);font-size:12.5px;font-family:var(--mono);line-height:1.55}
+/* ── typed rows ──────────────────────────────────────────── */
+.r{display:flex;justify-content:space-between;gap:20px;align-items:baseline;
+  font:12.5px/1.7 var(--type);padding:6px 0;
+  border-bottom:1px dotted var(--rule2)}
+.r:last-child{border-bottom:0}
+.r .k{color:var(--faint);letter-spacing:.06em;text-transform:uppercase;font-size:11px;flex:none}
+.r .v{text-align:right;word-break:break-word}
+.mono{font-family:var(--type);font-size:12.5px}
+a{color:var(--annot)} a:hover{text-decoration:none}
 
-/* ---------- verdict ---------- */
-.verdict{display:flex;align-items:baseline;gap:14px;margin:6px 0 4px;flex-wrap:wrap}
-.verdict b{font:700 32px/1.05 var(--sans);letter-spacing:-.03em}
-.reason{color:var(--ink2);font-size:14px;margin-bottom:14px}
-.split{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-@media(max-width:620px){.split{grid-template-columns:1fr}}
-.half{border:1px solid var(--line);border-radius:11px;padding:14px 16px;background:var(--bg2)}
-.half h3{font:11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;
-  color:var(--dim);margin-bottom:10px}
-.half .d{font:700 20px/1.15 var(--sans);letter-spacing:-.02em;margin-bottom:6px}
+/* ── the stamp ───────────────────────────────────────────── */
+.stamp{display:inline-block;font:700 13px/1 var(--type);letter-spacing:.2em;
+  padding:8px 13px;border:2.5px solid currentColor;border-radius:3px;
+  transform:rotate(-6deg);opacity:.94;position:relative}
+.stamp.ok{color:var(--stamp-ok)}
+.stamp.bad{color:var(--stamp-bad)}
+.stamp.land{animation:thunk .34s cubic-bezier(.2,1.5,.4,1) both}
+@keyframes thunk{
+  0%{transform:rotate(-16deg) scale(2.1);opacity:0}
+  60%{transform:rotate(-4deg) scale(.94);opacity:1}
+  100%{transform:rotate(-6deg) scale(1);opacity:.94}}
+@media(prefers-reduced-motion:reduce){.stamp.land{animation:none}}
 
-/* ---------- hash compare ---------- */
-.hash{font-family:var(--mono);font-size:11.5px;letter-spacing:.02em;
-  background:var(--bg);border:1px solid var(--line);border-radius:8px;
-  padding:11px 13px;margin:7px 0;word-break:break-all;line-height:1.65;position:relative}
-.hash.match{border-color:rgba(53,217,154,.45)}
-.hash.differ{border-color:rgba(255,95,109,.45)}
-.hash .lbl{display:block;font-size:10px;letter-spacing:.12em;text-transform:uppercase;
-  color:var(--dim);margin-bottom:5px}
-.diffch{color:var(--bad);font-weight:700}
-footer{border-top:1px solid var(--line);padding:26px 0 46px;color:var(--dim);font-size:12.5px}
-<style>
-.steps{display:grid;gap:15px;margin:26px 0 0}
-.step{display:grid;grid-template-columns:34px 1fr;gap:15px;align-items:start}
-.step .n{width:28px;height:28px;border-radius:99px;border:1px solid var(--line2);
-  display:grid;place-items:center;font:600 12px var(--mono);color:var(--accent);
-  background:var(--bg2)}
-.step p{color:var(--ink2);font-size:14.5px}
-.step b{color:var(--ink)}
-.who{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0 0}
-.who span{font:11px/1.5 var(--mono);border:1px solid var(--line);border-radius:8px;
-  padding:8px 12px;color:var(--dim)}
-.who b{color:var(--ink)}
-.plain{background:rgba(110,168,255,.07);border:1px solid rgba(110,168,255,.22);
-  border-radius:10px;padding:13px 16px;margin:0 0 18px;color:var(--ink2);font-size:13.5px}
-.plain b{color:var(--ink)}
-.try{border:1px dashed var(--line2);border-radius:10px;padding:14px 16px;margin-top:18px;
-  color:var(--dim);font-size:13px}
-.try b{color:var(--ink)}
-.try code{font-family:var(--mono);color:var(--accent);font-size:12.5px}
-h1{max-width:16ch}
+/* ── statement cards ─────────────────────────────────────── */
+.stmt{border:1px solid var(--rule2);background:var(--page2);padding:18px 20px;margin:16px 0;
+  position:relative;box-shadow:1px 2px 0 rgba(120,105,70,.13)}
+.stmt.ok{border-left:5px solid var(--stamp-ok)}
+.stmt.bad{border-left:5px solid var(--stamp-bad)}
+.stmt .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;
+  flex-wrap:wrap;margin-bottom:12px}
+.score{font:400 46px/1 var(--serif);letter-spacing:-.035em}
+.score small{font:400 15px/1 var(--type);color:var(--faint);margin-left:4px}
+.said{border-left:2px solid var(--rule2);padding:7px 0 7px 14px;margin:9px 0;
+  font:12.5px/1.66 var(--type);color:var(--ink2)}
+
+/* ── verdict split ───────────────────────────────────────── */
+.split{display:grid;grid-template-columns:1fr auto 1fr;gap:0;align-items:stretch;margin-top:6px}
+.pane{border:1px solid var(--rule2);background:var(--page2);padding:20px 22px}
+.pane:first-child{border-right:0}
+.pane:last-child{border-left:0}
+.vs{display:grid;place-items:center;padding:0 16px;background:var(--page2);
+  border-top:1px solid var(--rule2);border-bottom:1px solid var(--rule2);
+  font:11px/1 var(--type);letter-spacing:.2em;color:var(--faint)}
+.pane h3{font:11px/1 var(--type);letter-spacing:.16em;text-transform:uppercase;
+  color:var(--faint);margin-bottom:13px}
+.dec{font:400 clamp(26px,3.4vw,40px)/1.06 var(--serif);letter-spacing:-.025em;margin-bottom:8px}
+.dec.ok{color:var(--stamp-ok)} .dec.bad{color:var(--stamp-bad)} .dec.warn{color:#9a6a10}
+.why{font-size:15px;color:var(--ink2);margin-bottom:14px;min-height:3em}
+@media(max-width:760px){
+  .split{grid-template-columns:1fr}
+  .pane:first-child{border-right:1px solid var(--rule2);border-bottom:0}
+  .pane:last-child{border-left:1px solid var(--rule2);border-top:0}
+  .vs{border-left:1px solid var(--rule2);border-right:1px solid var(--rule2);padding:10px}
+}
+
+/* ── hash blocks ─────────────────────────────────────────── */
+.seal{font:12px/1.72 var(--type);background:#fffdf7;border:1px solid var(--rule2);
+  padding:13px 15px;margin:9px 0;word-break:break-all}
+.seal.ok{border-left:5px solid var(--stamp-ok)}
+.seal.bad{border-left:5px solid var(--stamp-bad)}
+.seal s{display:block;text-decoration:none;font-size:10px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--faint);margin-bottom:7px}
+.ch{color:var(--stamp-bad);font-weight:700;background:rgba(184,51,42,.13)}
+
+/* ── steps ───────────────────────────────────────────────── */
+.steps{counter-reset:st;margin-top:8px}
+.stepr{display:grid;grid-template-columns:auto 1fr;gap:20px;padding:17px 0;
+  border-bottom:1px dotted var(--rule2);align-items:start}
+.stepr:last-child{border-bottom:0}
+.stepr .no{font:400 34px/1 var(--serif);color:var(--stamp-bad);min-width:44px}
+.stepr p{font-size:16.5px;color:var(--ink2);max-width:76ch}
+.stepr b{color:var(--ink)}
+
+button{font:12px/1 var(--type);letter-spacing:.14em;text-transform:uppercase;
+  background:var(--page);color:var(--ink);border:1.5px solid var(--ink);
+  padding:12px 18px;cursor:pointer;margin:0 10px 10px 0;
+  box-shadow:2px 2px 0 var(--ink);transition:transform .1s,box-shadow .1s}
+button:hover{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink)}
+button:active{transform:translate(2px,2px);box-shadow:none}
+button.key{background:var(--ink);color:var(--page)}
+.empty{color:var(--faint);font:12.5px var(--type);padding:20px 0}
+.blink{animation:bl 1.05s steps(2) infinite}
+@keyframes bl{50%{opacity:.25}}
+@media(prefers-reduced-motion:reduce){.blink{animation:none}}
+.fade{animation:fi .4s ease both}
+@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.fade{animation:none}}
+
+footer{border-top:2px solid var(--ink);margin-top:20px;padding:22px 0 60px;
+  font:11px/1.9 var(--type);letter-spacing:.06em;color:var(--faint);text-transform:uppercase}
 </style></head><body>
 
-<header class="top"><div class="wrap">
-  <span class="brand">Vouch<i>.</i></span>
-  <span class="chip" id="net"><span class="dot"></span>connecting</span>
-  <span class="chip" id="issuer"></span>
-  <span class="spacer"></span>
-  <span class="chip dimc" id="store">memory</span>
-</div></header>
+<div class="filebar"><div class="wrap">
+  <b>VOUCH</b>
+  <span class="tag" id="net">connecting</span>
+  <span class="tag" id="issuer"></span>
+  <span class="sp"></span>
+  <span class="tag" id="store">memory</span>
+</div></div>
 
 <div class="wrap">
-  <div class="hero">
-    <div class="kicker">Sibyl Labs Hackathon 2026 &middot; team Attrito</div>
-    <h1>AI agents have started hiring each other.</h1>
-    <p class="lede"><b style="color:var(--ink)">None of them can check who cheated them last
-      week.</b> There is a reputation standard on Base called ERC-8004, but it only stores a
-      number &mdash; a 4.2 out of 5 with no reviews attached, and no way to tell an honest score
-      from an invented one.</p>
-    <p class="lede">Vouch is the missing half. Agents write down what actually happened, publish
-      it with a cryptographic fingerprint, and check each other before accepting work.
-      <b style="color:var(--ink)">Everything on this page is verified live, in your own
-      browser.</b></p>
-
-    <div class="who">
-      <span>cast &middot; <b>our agent</b> &mdash; runs Vouch</span>
-      <span><b>swiftrender</b> &mdash; a counterparty, ERC-8004 #9178</span>
-      <span><b>northgate</b> &mdash; a different agent, also runs Vouch</span>
-      <span><b>newcomer</b> &mdash; a stranger nobody here has dealt with</span>
+  <div class="cover">
+    <div class="casebar">
+      <span>case file &nbsp;<b>ERC&#8209;8004 / 9178</b></span>
+      <span>jurisdiction &nbsp;<b>Base Sepolia</b></span>
+      <span>filed by &nbsp;<b>team Attrito</b></span>
+      <span>status &nbsp;<b id="hdr-status">open</b></span>
     </div>
 
-    <div class="stats">
-      <div class="stat"><b id="s-ratings">&mdash;</b><span>records on chain</span></div>
-      <div class="stat"><b id="s-verified">&mdash;</b><span>verified in browser</span></div>
-      <div class="stat"><b id="s-disputes">&mdash;</b><span>verified disputes</span></div>
-      <div class="stat"><b id="s-cp">&mdash;</b><span>counterparties known</span></div>
+    <h1>AI agents have started hiring each other.
+      <span class="sm">Not one of them can check who
+      <span class="u">cheated them last week</span>.</span></h1>
+
+    <p class="deck">There is a reputation standard on Base, ERC&#8209;8004. It stores a number
+      &mdash; a 4.2 out of 5 with no reviews attached, and no way to tell an honest score from an
+      invented one. <b>Vouch is the missing half:</b> agents write down what actually happened,
+      seal it with a fingerprint, and read each other's statements before accepting work.</p>
+
+    <p class="deck">Every claim in this file is checked <b>in your own browser</b>. No server is
+      asked, and none is trusted.</p>
+
+    <div class="cast">
+      <div><s>the filer</s><b>our agent</b> &mdash; runs Vouch</div>
+      <div><s>the subject</s><b>swiftrender</b> &mdash; agent #9178</div>
+      <div><s>corroborating witness</s><b>northgate</b> &mdash; unrelated, also runs Vouch</div>
+      <div><s>unknown party</s><b>newcomer</b> &mdash; never dealt with</div>
+    </div>
+
+    <div class="tally">
+      <div><b id="s-ratings">&mdash;</b><s>statements filed</s></div>
+      <div><b id="s-verified">&mdash;</b><s>seals verified here</s></div>
+      <div><b id="s-disputes">&mdash;</b><s>proven disputes</s></div>
+      <div><b id="s-cp">&mdash;</b><s>parties on record</s></div>
     </div>
   </div>
 </div>
 
 <div class="wrap"><main>
 
-  <section class="wide">
-    <div class="h"><span class="num">START HERE</span><h2>What happened, in four steps</h2></div>
+  <section class="exhibit tilt-l">
+    <div class="exno"><span>Summary of the matter</span><span>read first</span></div>
+    <h2>What happened, in four steps</h2>
     <div class="steps">
-      <div class="step"><div class="n">1</div><p><b>Our agent did a job for swiftrender.</b>
-        It went badly: they disputed the finished work, then short-paid the invoice by 60%.
+      <div class="stepr"><div class="no">I</div><p><b>Our agent did a job for swiftrender.</b>
+        It went badly: they disputed the finished work, then short&#8209;paid the invoice by 60%.
         Our agent wrote that down in its memory.</p></div>
-      <div class="step"><div class="n">2</div><p><b>It published the record to Base.</b> Not just a
-        score &mdash; the full account, plus a fingerprint proving the account cannot be quietly
-        edited later.</p></div>
-      <div class="step"><div class="n">3</div><p><b>A different agent, northgate, had its own bad
-        experience</b> with the same counterparty, and published its own record. Neither agent can
-        read the other's memory. All they share is the chain.</p></div>
-      <div class="step"><div class="n">4</div><p><b>Now an agent that has never met swiftrender can
-        look them up</b> &mdash; read both records, check both fingerprints, and refuse the job.
-        That last step is what does not exist today.</p></div>
-    </div>
-    <div class="try">Everything below runs for real against Base Sepolia. <b>Nothing is
-      pre-recorded</b>, and no server is involved: your browser downloads each record and hashes
-      it itself. To run the whole thing locally: <code>python -m vouch ui</code></div>
-  </section>
-
-  <section class="wide">
-    <div class="h"><span class="num">01</span><h2>Would you take the job?</h2></div>
-    <div class="plain"><b>What this shows:</b> the same agent deciding twice about
-      <b>newcomer</b>, a counterparty it has never dealt with. On the left it knows only its own
-      history, so it knows nothing at all. On the right it can also read what other agents
-      published. <b>This is the whole product in one comparison.</b></div>
-    <div id="decision"><div class="empty"><span class="spin"></span>deciding&hellip;</div></div>
-    <div style="margin-top:16px">
-      <button class="primary" onclick="decide('newcomer')">Ask about a stranger</button>
-      <button onclick="decide('swiftrender')">Ask about someone we know</button>
+      <div class="stepr"><div class="no">II</div><p><b>It filed the record on Base</b> &mdash; not
+        a score, the whole account, sealed with a fingerprint so it cannot be quietly edited
+        afterwards.</p></div>
+      <div class="stepr"><div class="no">III</div><p><b>An unrelated agent, northgate, had its own
+        bad experience</b> with the same party and filed too. Neither can read the other's memory.
+        All they share is the chain.</p></div>
+      <div class="stepr"><div class="no">IV</div><p><b>Now an agent that has never met swiftrender
+        can look them up</b>, check both seals, and refuse the work. That last step does not exist
+        today.</p></div>
     </div>
   </section>
 
-  <section class="wide">
-    <div class="h"><span class="num">02</span><h2>Who has vouched about this agent?</h2></div>
-    <div class="plain"><b>What this shows:</b> every record published about swiftrender, by anyone.
-      For each one your browser downloads the file and recomputes its fingerprint. If a file was
-      edited after publication the two fingerprints disagree and the record is
-      <b>discarded rather than believed</b>. Both hashes are printed on every card so you can
-      compare them yourself.</div>
-    <div id="network"><div class="empty"><span class="spin"></span>reading the registry&hellip;</div></div>
+  <section class="exhibit tilt-r">
+    <div class="exno"><span>Exhibit A</span><span>the question</span></div>
+    <h2>Would you take the job?</h2>
+    <p class="note"><b>What this shows.</b> The same agent deciding twice about <b>newcomer</b>, a
+      party it has never dealt with. On the left it consults only its own memory, so it knows
+      nothing. On the right it may also read what others filed. This single comparison is the
+      entire argument.</p>
+    <div id="decision"><div class="empty blink">deciding&hellip;</div></div>
+    <div style="margin-top:18px">
+      <button class="key" onclick="decide('newcomer')">Ask about a stranger</button>
+      <button onclick="decide('swiftrender')">Ask about a known party</button>
+    </div>
   </section>
 
-  <section>
-    <div class="h"><span class="num">03</span><h2>Could someone fake a record?</h2></div>
-    <div class="plain"><b>What this shows:</b> we download a real record, edit it in your browser
-      to hide the dispute, then re-hash it. The fingerprint changes, so the forgery is caught.</div>
-    <button onclick="tamper()">Try to forge a record</button>
-    <div id="tamper"><div class="empty">press the button</div></div>
+  <section class="exhibit tilt-l">
+    <div class="exno"><span>Exhibit B</span><span>sworn statements</span></div>
+    <h2>Who has testified about this agent?</h2>
+    <p class="note"><b>What this shows.</b> Every statement filed about swiftrender, by anyone.
+      Your browser downloads each one and recomputes its seal. If a file was altered after filing,
+      the two seals disagree and the statement is <b>struck from the record</b>, not believed.
+      Both values are printed so you can compare them yourself.</p>
+    <div id="network"><div class="empty blink">retrieving the register&hellip;</div></div>
   </section>
 
-  <section>
-    <div class="h"><span class="num">04</span><h2>Is the memory really doing the work?</h2></div>
-    <div class="plain"><b>What this shows:</b> the hackathon's own test. Delete the memory layer
-      and the product must break, not merely get worse. Same code, same counterparty, memory gone.</div>
-    <div id="gate"><div class="empty">loading&hellip;</div></div>
+  <section class="exhibit tilt-r">
+    <div class="exno"><span>Exhibit C</span><span>attempted forgery</span></div>
+    <h2>Could a statement be faked?</h2>
+    <p class="note"><b>What this shows.</b> We take a genuine statement, edit it in your browser to
+      erase the dispute, and re-seal it. The fingerprint moves, so the forgery is caught.</p>
+    <button onclick="tamper()">Attempt a forgery</button>
+    <div id="tamper"><div class="empty">awaiting instruction</div></div>
   </section>
 
-  <section>
-    <div class="h"><span class="num">05</span><h2>What the agent remembers</h2></div>
-    <div class="plain"><b>What this shows:</b> the agent's own memory, held in Sibyl Memory. One
-      row per counterparty, with duplicates made impossible by the schema itself.</div>
-    <div id="memory"><div class="empty"><span class="spin"></span>loading&hellip;</div></div>
+  <section class="exhibit tilt-l">
+    <div class="exno"><span>Exhibit D</span><span>the test</span></div>
+    <h2>Is the memory really doing the work?</h2>
+    <p class="note"><b>What this shows.</b> The hackathon's own test: delete the memory layer and
+      the product must break, not merely worsen. Same code, same party, memory removed.</p>
+    <div id="gate"><div class="empty blink">loading&hellip;</div></div>
   </section>
 
-  <section>
-    <div class="h"><span class="num">06</span><h2>The rules it follows</h2></div>
-    <div class="plain"><b>What this shows:</b> the thresholds the agent reads when deciding. They
-      live in memory rather than in code, so editing this record changes what it does next.</div>
-    <div id="policy"><div class="empty"><span class="spin"></span>loading&hellip;</div></div>
+  <section class="exhibit tilt-r">
+    <div class="exno"><span>Exhibit E</span><span>the filer's memory</span></div>
+    <h2>What the agent remembers</h2>
+    <p class="note"><b>What this shows.</b> The agent's own record, held in Sibyl Memory. One row
+      per party, with duplicates made impossible by the schema itself.</p>
+    <div id="memory"><div class="empty blink">loading&hellip;</div></div>
+  </section>
+
+  <section class="exhibit tilt-l">
+    <div class="exno"><span>Exhibit F</span><span>standing orders</span></div>
+    <h2>The rules it follows</h2>
+    <p class="note"><b>What this shows.</b> The thresholds consulted at decision time. They live in
+      memory rather than in code, so amending this record changes what the agent does next.</p>
+    <div id="policy"><div class="empty blink">loading&hellip;</div></div>
   </section>
 
 </main>
 <footer>Vouch &middot; team Attrito &middot; Sibyl Labs Hackathon 2026 &middot;
-  every transaction on Base Sepolia testnet &middot; snapshot <span id="gen">&mdash;</span> &middot;
+  every transaction on Base Sepolia testnet &middot; file compiled <span id="gen">&mdash;</span> &middot;
   <a href="https://github.com/egbujor-emmanuel/vouch">source on GitHub</a></footer>
 </div>
 

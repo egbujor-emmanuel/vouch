@@ -1,19 +1,20 @@
-/* The dashboard, verifying everything in your browser.
+/* The case file, assembled and checked in your browser.
  *
- * There is no server. This page reads the ERC-8004 registry over public RPC,
- * fetches each evidence file from its published URI, hashes it here, and
- * compares that against the digest committed on-chain. Nothing asks you to
- * trust Vouch: the verification happens on your machine, with code you can
- * read in view-source.
+ * There is no server. This page reads the ERC-8004 register over public RPC,
+ * downloads each filed statement from its published URI, re-seals it here with
+ * keccak-256, and compares that against the seal recorded on chain. Nothing
+ * asks you to trust Vouch: the checking happens on your machine, in code you
+ * can read from view-source.
  */
 "use strict";
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) =>
   String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-const row = (k, v) => `<div class="row"><span class="k">${esc(k)}</span><span class="v">${v}</span></div>`;
+const row = (k, v) => `<div class="r"><span class="k">${esc(k)}</span><span class="v">${v}</span></div>`;
 const short = (s, n = 22) => (s ? esc(String(s).slice(0, n)) + "…" : "");
-const busy = (id, msg) => ($(id).innerHTML = `<div class="empty"><span class="spin"></span>${esc(msg)}</div>`);
+const busy = (id, msg) => ($(id).innerHTML = `<div class="empty blink">${esc(msg)}</div>`);
+const stampFor = (ok) => `<span class="stamp land ${ok ? "ok" : "bad"}">${ok ? "VERIFIED" : "STRUCK"}</span>`;
 
 let SNAP = null;
 let VERIFIED = [];
@@ -42,22 +43,20 @@ const hexToBytes = (h) => {
   return out;
 };
 
-/** Decode one NewFeedback log. The layout is fixed, so this reads it directly.
- *  Non-indexed head: index, value, decimals, 4 string offsets, then the
- *  feedbackHash sitting static in slot 7. */
+/** Decode one NewFeedback log directly. The layout is fixed: index, value and
+ *  decimals occupy the first three slots, four string offsets follow, and the
+ *  seal sits static in slot 7. Verified against a real log before this page
+ *  was built on it. */
 function decodeFeedback(log) {
   const d = log.data.slice(2);
   const slot = (i) => d.slice(i * 64, (i + 1) * 64);
   const str = (slotIdx) => {
     const off = Number(BigInt("0x" + slot(slotIdx))) * 2;
     const len = Number(BigInt("0x" + d.slice(off, off + 64)));
-    const hex = d.slice(off + 64, off + 64 + len * 2);
-    return new TextDecoder().decode(hexToBytes(hex));
+    return new TextDecoder().decode(hexToBytes(d.slice(off + 64, off + 64 + len * 2)));
   };
-  // int128 is two's complement; scores are non-negative here but handle sign.
   let value = BigInt("0x" + slot(1));
-  const SIGN = 1n << 127n;
-  if (value >= SIGN) value -= 1n << 128n;
+  if (value >= 1n << 127n) value -= 1n << 128n; // int128 is two's complement
 
   return {
     client: "0x" + log.topics[2].slice(26),
@@ -79,14 +78,18 @@ async function fetchFeedbackLogs() {
   const seen = new Set();
   const out = [];
 
-  // Hints keep this to one narrow query per rating. They are only hints: the
-  // log itself is the source of truth, and a wrong hint just finds nothing.
+  // Block hints keep this to one narrow query per statement. They are hints
+  // only: the log is the source of truth, and a wrong hint simply finds
+  // nothing rather than fabricating a result.
   for (const h of SNAP.log_hints || []) {
-    const from = "0x" + Math.max(0, h.block - 2).toString(16);
-    const to = "0x" + (h.block + 2).toString(16);
     let logs = [];
     try {
-      logs = await rpc("eth_getLogs", [{ address: SNAP.network.reputation, fromBlock: from, toBlock: to, topics: [topic0, agent] }]);
+      logs = await rpc("eth_getLogs", [{
+        address: SNAP.network.reputation,
+        fromBlock: "0x" + Math.max(0, h.block - 2).toString(16),
+        toBlock: "0x" + (h.block + 2).toString(16),
+        topics: [topic0, agent],
+      }]);
     } catch (e) {
       continue;
     }
@@ -101,12 +104,12 @@ async function fetchFeedbackLogs() {
   return out;
 }
 
-/* ---------- verification ---------- */
+/* ---------- checking a statement ---------- */
 
 async function verifyRating(f) {
   const r = { ...f, verified: false, status: "unchecked", evidence: null };
   if (!f.uri || !f.hash || /^0x0+$/.test(f.hash)) {
-    r.status = "no evidence attached";
+    r.status = "no statement attached — a number with nothing behind it";
     return r;
   }
   let bytes;
@@ -115,32 +118,31 @@ async function verifyRating(f) {
     if (!res.ok) throw new Error("HTTP " + res.status);
     bytes = new Uint8Array(await res.arrayBuffer());
   } catch (e) {
-    r.status = "evidence unreachable (" + e.message + ")";
+    r.status = "statement unreachable (" + e.message + ")";
     return r;
   }
-  // Hash the bytes exactly as served. Re-serialising would risk differing from
-  // the publisher's canonical form and failing an honest file.
-  const got = keccak256(bytes);
-  r.computed = got;
-  if (got.toLowerCase() !== f.hash.toLowerCase()) {
-    r.status = "HASH MISMATCH — evidence was altered";
+  // Seal the bytes exactly as served. Re-serialising here would round 25.0 to
+  // 25 and wrongly condemn an honest filing.
+  r.computed = keccak256(bytes);
+  if (r.computed.toLowerCase() !== f.hash.toLowerCase()) {
+    r.status = "seal does not match — the statement was altered after filing";
     return r;
   }
   try {
     r.evidence = JSON.parse(new TextDecoder().decode(bytes));
   } catch {
-    r.status = "evidence is not valid JSON";
+    r.status = "statement is not readable";
     return r;
   }
   r.verified = true;
-  r.status = "verified";
+  r.status = "seal matches the record on chain";
   return r;
 }
 
 const disputesOf = (r) => (r.verified && r.evidence ? Number(r.evidence.summary?.jobs_disputed || 0) : 0);
 const testimonyOf = (r) =>
   r.verified && r.evidence
-    ? (r.evidence.events || []).flatMap((e) => (e.acted || []).map((a) => `${e.ts || ""} [${r.client.slice(0, 10)}…] ${a}`))
+    ? (r.evidence.events || []).flatMap((e) => (e.acted || []).map((a) => `${e.ts || ""} — ${a}`))
     : [];
 
 /* ---------- render ---------- */
@@ -148,10 +150,10 @@ const testimonyOf = (r) =>
 async function boot() {
   SNAP = await (await fetch("snapshot.json", { cache: "no-store" })).json();
 
-  $("net").className = "chip live";
-  $("net").innerHTML = `<span class="dot"></span>${esc(SNAP.network.name)} · chain ${SNAP.network.chain_id}`;
-  $("issuer").textContent = SNAP.issuer.address ? SNAP.issuer.address.slice(0, 12) + "…" : "";
-  $("store").textContent = `sibyl schema v${SNAP.memory.schema_version ?? "?"} · ${SNAP.memory.counterparties.length} counterparties`;
+  $("net").className = "tag on";
+  $("net").textContent = SNAP.network.name + " · chain " + SNAP.network.chain_id;
+  $("issuer").textContent = SNAP.issuer.address ? "filer " + SNAP.issuer.address.slice(0, 10) + "…" : "";
+  $("store").textContent = "sibyl memory v" + (SNAP.memory.schema_version ?? "?");
   $("s-cp").textContent = SNAP.memory.counterparties.length;
   $("gen").textContent = new Date(SNAP.generated_at).toISOString().slice(0, 16).replace("T", " ") + " UTC";
 
@@ -159,41 +161,41 @@ async function boot() {
   renderPolicy();
   renderGate();
   await renderNetwork();
-  // Show the punchline without making anyone hunt for a button.
-  decide("newcomer");
+  decide("newcomer"); // the punchline should not need hunting for
 }
 
 function renderMemory() {
   const inc = SNAP.memory.incidents || [];
   $("memory").innerHTML =
     SNAP.memory.counterparties
-      .map(
-        (c) => `<div class="card fade">
-      <div class="top2"><span><b>${esc(c.handle)}</b>
-        <span class="mono dimc">ERC-8004 #${esc(c.agent_id)}</span></span>
-        ${c.flagged ? '<span class="badge bad">FLAGGED</span>' : ""}</div>
-      ${row("jobs completed", `<b>${c.jobs_completed}</b>`)}
-      ${row("jobs disputed", `<b class="${c.jobs_disputed ? "bad" : "dimc"}">${c.jobs_disputed}</b>`)}
-      ${inc.filter((i) => i.handle === c.handle).map((i) => `<div class="quote">${esc(i.ts || "")} [${esc(i.kind)}] ${esc(i.detail)}</div>`).join("")}
-    </div>`
-      )
-      .join("") + row("schema", `Sibyl Memory · five tiers · v${SNAP.memory.schema_version ?? "?"}`);
+      .map((c) => `<div class="stmt fade">
+        <div class="hd">
+          <span><b style="font-size:19px">${esc(c.handle)}</b>
+            <span class="mono" style="color:var(--faint)"> · agent #${esc(c.agent_id)}</span></span>
+          ${c.flagged ? '<span class="stamp bad">FLAGGED</span>' : ""}
+        </div>
+        ${row("jobs completed", c.jobs_completed)}
+        ${row("jobs disputed", `<b style="color:${c.jobs_disputed ? "var(--stamp-bad)" : "var(--faint)"}">${c.jobs_disputed}</b>`)}
+        ${inc.filter((i) => i.handle === c.handle)
+             .map((i) => `<div class="said">${esc(i.ts || "")} — ${esc(i.detail)}</div>`).join("")}
+      </div>`)
+      .join("") + row("held in", "Sibyl Memory · five tiers · v" + (SNAP.memory.schema_version ?? "?"));
 }
 
 function renderPolicy() {
   $("policy").innerHTML = Object.entries(SNAP.memory.policy)
     .filter(([k]) => k !== "notes")
-    .map(([k, v]) => row(k, `<span class="mono acc">${esc(v)}</span>`))
+    .map(([k, v]) => row(k.replace(/_/g, " "), `<span class="mono">${esc(v)}</span>`))
     .join("");
 }
 
 async function renderNetwork() {
-  busy("network", "reading the registry and hashing every evidence file in your browser…");
+  busy("network", "retrieving the register and re-sealing every statement in your browser…");
   let raw;
   try {
     raw = await fetchFeedbackLogs();
   } catch (e) {
-    $("network").innerHTML = `<div class="empty bad">${esc(e.message)}</div>`;
+    $("network").innerHTML = `<div class="empty">${esc(e.message)}</div>`;
     return;
   }
 
@@ -206,42 +208,42 @@ async function renderNetwork() {
   $("s-ratings").textContent = rated.length;
   $("s-verified").textContent = ver.length;
   $("s-disputes").textContent = disputes;
+  $("hdr-status").textContent = disputes ? "disputes proven" : "open";
 
   $("network").innerHTML =
     row("subject", `<span class="mono">ERC-8004 agent #${SNAP.subject_agent_id}</span>`) +
-    row("registry", `<span class="mono">${esc(SNAP.network.reputation)}</span>`) +
-    row("believed", `<b class="${ver.length ? "ok" : "dimc"}">${ver.length}</b> of ${rated.length} ratings`) +
-    row("verified in", `<span class="ok">your browser</span> <span class="dimc">· keccak-256, no server involved</span>`) +
+    row("register", `<span class="mono">${esc(SNAP.network.reputation)}</span>`) +
+    row("admitted", `<b>${ver.length}</b> of ${rated.length} statements`) +
+    row("sealed with", "keccak-256, recomputed in your browser") +
     (rated.length
-      ? rated
-          .map(
-            (r) => `<div class="card fade ${r.verified ? "verified" : "rejected"}">
-        <div class="top2">
-          <div><div class="score">${(r.value / 10 ** r.decimals).toFixed(2)}<small>/100</small></div>
-            <span class="mono dimc">${esc(r.client.slice(0, 20))}…</span></div>
-          <span class="badge ${r.verified ? "ok" : "bad"}"><span class="dot"></span>${r.verified ? "VERIFIED" : "DISCARDED"}</span>
-        </div>
-        ${row("status", `<span class="${r.verified ? "ok" : "bad"}">${esc(r.status)}</span>`)}
-        ${row("committed on chain", `<span class="mono">${short(r.hash, 30)}</span>`)}
-        ${r.computed ? row("hashed here", `<span class="mono ${r.verified ? "ok" : "bad"}">${short(r.computed, 30)}</span>`) : ""}
-        ${r.uri ? row("evidence", `<a class="mono" target="_blank" rel="noopener" href="${esc(r.uri)}">open the file ↗</a>`) : ""}
-        ${row("transaction", `<a class="mono" target="_blank" rel="noopener" href="${esc(SNAP.network.explorer)}/tx/${esc(r.tx)}">${short(r.tx, 20)} ↗</a>`)}
-        ${testimonyOf(r).map((t) => `<div class="quote">${esc(t)}</div>`).join("")}
-      </div>`
-          )
-          .join("")
-      : `<div class="empty">no ratings found</div>`);
+      ? rated.map((r) => `<div class="stmt fade ${r.verified ? "ok" : "bad"}">
+          <div class="hd">
+            <div>
+              <div class="score">${(r.value / 10 ** r.decimals).toFixed(2)}<small>/100</small></div>
+              <span class="mono" style="color:var(--faint)">deposed by ${esc(r.client.slice(0, 18))}…</span>
+            </div>
+            ${stampFor(r.verified)}
+          </div>
+          ${row("finding", esc(r.status))}
+          <div class="seal ${r.verified ? "ok" : "bad"}"><s>seal recorded on chain</s>${esc(r.hash)}</div>
+          ${r.computed ? `<div class="seal ${r.verified ? "ok" : "bad"}"><s>seal recomputed here</s>${esc(r.computed)}</div>` : ""}
+          ${r.uri ? row("statement", `<a class="mono" target="_blank" rel="noopener" href="${esc(r.uri)}">read the filing ↗</a>`) : ""}
+          ${row("filed in", `<a class="mono" target="_blank" rel="noopener" href="${esc(SNAP.network.explorer)}/tx/${esc(r.tx)}">${short(r.tx, 18)} ↗</a>`)}
+          ${testimonyOf(r).map((t) => `<div class="said">${esc(t)}</div>`).join("")}
+        </div>`).join("")
+      : `<div class="empty">no statements on file</div>`);
 }
 
 /* ---------- the decision ---------- */
 
-function verdictBlock(v) {
+function pane(title, v) {
   const bad = v.decision === "REFUSE";
   const warn = v.decision !== "ACCEPT" && !bad;
-  return `<div class="d ${bad ? "bad" : warn ? "warn" : "ok"}">${esc(v.decision)}</div>
-    <div class="reason">${esc(v.reason)}</div>
-    ${row("quoted", `$${Number(v.quoted_price_usd).toFixed(2)} <span class="dimc">of $${Number(v.standard_price_usd).toFixed(2)}</span>`)}
-    ${row("escrow", v.escrow_required ? '<span class="warn">required</span>' : "no")}`;
+  return `<div class="pane"><h3>${esc(title)}</h3>
+    <div class="dec ${bad ? "bad" : warn ? "warn" : "ok"}">${esc(v.decision.replace(/_/g, " "))}</div>
+    <div class="why">${esc(v.reason)}</div>
+    ${row("quoted", `$${Number(v.quoted_price_usd).toFixed(2)} of $${Number(v.standard_price_usd).toFixed(2)}`)}
+    ${row("escrow", v.escrow_required ? "required" : "no")}</div>`;
 }
 
 function decide(handle) {
@@ -251,43 +253,38 @@ function decide(handle) {
   const ver = VERIFIED.filter((r) => r.verified);
   const netDisputes = ver.reduce((n, r) => n + disputesOf(r), 0);
 
-  // The same rule the engine applies: verified network disputes count
-  // alongside our own.
   let online;
   if (handle === "newcomer" && netDisputes > 0) {
     online = {
       decision: "REFUSE",
-      reason: `never dealt with them, but ${netDisputes} verified dispute(s) published by ${ver.length} other agent(s)`,
+      reason: `never dealt with them, but ${netDisputes} proven dispute(s) deposed by ${ver.length} other agent(s)`,
       quoted_price_usd: 0,
       standard_price_usd: offline.standard_price_usd,
       escrow_required: false,
     };
   } else {
     online = { ...offline };
-    if (netDisputes) online.reason += `, ${netDisputes} from the network`;
+    if (netDisputes) online.reason += `, ${netDisputes} of them from the register`;
   }
 
   const changed = offline.decision !== online.decision;
   $("decision").innerHTML = `<div class="split fade">
-      <div class="half"><h3>Memory only · ${esc(handle)}</h3>${verdictBlock(offline)}</div>
-      <div class="half"><h3>Memory + network · ${esc(handle)}</h3>${verdictBlock(online)}</div>
+      ${pane("its own memory only", offline)}
+      <div class="vs">VS</div>
+      ${pane("memory + the register", online)}
     </div>
-    <div style="margin-top:14px">${row(
-      "network changed the outcome",
-      changed
-        ? '<span class="badge ok"><span class="dot"></span>YES</span>'
-        : '<span class="badge dimc">no — both agree</span>'
-    )}</div>
-    ${ver.flatMap(testimonyOf).map((t) => `<div class="quote">${esc(t)}</div>`).join("")}`;
+    <div class="r" style="margin-top:18px"><span class="k">did the register change the outcome</span>
+      <span class="v">${changed ? stampFor(true).replace("VERIFIED", "YES") : '<span class="stamp bad">NO CHANGE</span>'}</span></div>
+    ${ver.flatMap(testimonyOf).map((t) => `<div class="said">${esc(t)}</div>`).join("")}`;
 }
 
-/* ---------- tamper ---------- */
+/* ---------- attempted forgery ---------- */
 
 async function tamper() {
-  busy("tamper", "fetching the real file and forging it here…");
+  busy("tamper", "retrieving a genuine statement and altering it here…");
   const target = VERIFIED.find((r) => r.verified);
   if (!target) {
-    $("tamper").innerHTML = `<div class="empty">no verified evidence to forge</div>`;
+    $("tamper").innerHTML = `<div class="empty">no verified statement to work from</div>`;
     return;
   }
   const bytes = new Uint8Array(await (await fetch(target.uri, { cache: "no-store" })).arrayBuffer());
@@ -298,21 +295,19 @@ async function tamper() {
   obj.summary.jobs_disputed = 0;
   obj.verdict.decision = "ACCEPT";
   obj.events = [];
-  const forgedBytes = new TextEncoder().encode(JSON.stringify(obj));
-  const forged = keccak256(forgedBytes);
+  const forged = keccak256(new TextEncoder().encode(JSON.stringify(obj)));
 
   const diff = (a, b) =>
-    b.split("").map((ch, i) => (a[i] === ch ? esc(ch) : `<span class="diffch">${esc(ch)}</span>`)).join("");
+    b.split("").map((ch, i) => (a[i] === ch ? esc(ch) : `<span class="ch">${esc(ch)}</span>`)).join("");
 
   $("tamper").innerHTML = `<div class="fade">
-    ${row("file", `<span class="mono">${short(target.uri.split("/").pop(), 20)}</span>`)}
-    ${row("edit applied", `<span class="dimc">jobs_disputed ${before} to 0, testimony removed</span>`)}
-    <div class="hash match"><span class="lbl">committed on chain · file as served</span>${esc(honest)}
-      <div style="margin-top:8px"><span class="badge ok"><span class="dot"></span>VERIFIES</span></div></div>
-    <div class="hash differ"><span class="lbl">recomputed after the forgery</span>${diff(honest, forged)}
-      <div style="margin-top:8px"><span class="badge bad"><span class="dot"></span>REJECTED</span></div></div>
-    <div class="reason" style="margin-top:12px">Changing one number changes the digest. Your browser
-      re-hashed both; the second no longer matches what is committed on Base.</div></div>`;
+    ${row("alteration made", `disputes ${before} → 0, testimony removed`)}
+    <div class="seal ok"><s>genuine statement, as filed</s>${esc(honest)}
+      <div style="margin-top:10px">${stampFor(true)}</div></div>
+    <div class="seal bad"><s>the same statement, after tampering</s>${diff(honest, forged)}
+      <div style="margin-top:10px">${stampFor(false)}</div></div>
+    <div class="why" style="margin-top:14px">One number changed and the seal moved. Your browser
+      computed both; neither came from us.</div></div>`;
 }
 
 /* ---------- the gate ---------- */
@@ -322,25 +317,21 @@ function renderGate() {
   const without = {
     decision: "ACCEPT_WITH_ESCROW",
     reason: "no prior history in memory",
+    quoted_price_usd: 25, standard_price_usd: 25, escrow_required: true,
   };
   $("gate").innerHTML = `<div class="split">
-      <div class="half"><h3>With memory</h3>
-        <div class="d ${withMem.decision === "REFUSE" ? "bad" : "ok"}">${esc(withMem.decision)}</div>
-        <div class="reason">${esc(withMem.reason)}</div></div>
-      <div class="half"><h3>Memory deleted</h3>
-        <div class="d warn">${esc(without.decision)}</div>
-        <div class="reason">${esc(without.reason)}</div></div>
+      ${pane("with memory", withMem)}
+      <div class="vs">VS</div>
+      ${pane("memory deleted", without)}
     </div>
-    <div style="margin-top:14px">${row(
-      "behaviour differs",
-      '<span class="badge ok"><span class="dot"></span>YES — memory is load-bearing</span>'
-    )}</div>
-    <div class="reason" style="margin-top:10px">Reproduce it yourself:
+    <div class="r" style="margin-top:18px"><span class="k">behaviour differs</span>
+      <span class="v"><span class="stamp ok">LOAD-BEARING</span></span></div>
+    <div class="why" style="margin-top:12px">Reproduce it yourself:
       <span class="mono">python -m vouch delete-test</span></div>`;
 }
 
 window.decide = decide;
 window.tamper = tamper;
 boot().catch((e) => {
-  document.getElementById("network").innerHTML = `<div class="empty bad">${esc(e.message)}</div>`;
+  document.getElementById("network").innerHTML = `<div class="empty">${esc(e.message)}</div>`;
 });
