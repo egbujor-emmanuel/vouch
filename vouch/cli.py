@@ -90,12 +90,18 @@ def cmd_seed(args) -> int:
     eng = TrustEngine(mem)
 
     rule("SESSION 1  ·  first contact, no history")
-    mem.upsert_counterparty(
-        "swiftrender", agent_id=4242,
-        address="0x00000000000000000000000000000000SwiftR"[:42].ljust(42, "0"),
+    # Use the real registered id where one exists, so the counterparty in
+    # memory is the same agent that is rated on-chain. With a placeholder id
+    # the network lookup would query a stranger and always find nothing.
+    suffix = args.network.replace("-", "_").upper()
+    subject_id = int(
+        os.environ.get(f"VOUCH_SUBJECT_AGENT_ID_{suffix}")
+        or os.environ.get("VOUCH_SUBJECT_AGENT_ID")
+        or 4242
     )
+    mem.upsert_counterparty("swiftrender", agent_id=subject_id)
     v = eng.decide("swiftrender", standard_price_usd=25.0, job_ref="job-001")
-    kv("counterparty", "swiftrender (ERC-8004 #4242)")
+    kv("counterparty", f"swiftrender (ERC-8004 #{subject_id})")
     kv("memory says", "nothing on record")
     print(f"  {GRN}{v.headline()}{RST}")
 
@@ -219,13 +225,33 @@ def cmd_coldstart(args) -> int:
     print(f"  {DIM}it is about to read out of Sibyl Memory.{RST}\n")
 
     mem = VouchMemory(DB)
-    eng = TrustEngine(mem)
+
+    # Consult the network as well as our own memory, unless asked not to. Own
+    # memory alone is a private ledger; the whole claim is that an agent can
+    # act on what someone else published.
+    chain, issuer_addr = None, os.environ.get("VOUCH_ADDRESS")
+    if not args.offline:
+        try:
+            from .chain import Chain
+
+            chain = Chain(args.network)
+            if not chain.connected():
+                chain = None
+        except Exception:
+            chain = None
+    kv("network", f"{args.network} (live)" if chain else "offline, memory only")
+    print()
+
+    eng = TrustEngine(mem, chain=chain, issuer_address=issuer_addr)
 
     for handle, price in (("swiftrender", 25.0), ("pixelforge", 25.0)):
         v = eng.decide(handle, standard_price_usd=price, job_ref=f"new-{handle}")
         colour = RED if v.decision == "REFUSE" else (YEL if v.decision != "ACCEPT" else GRN)
         print(f"  {BOLD}{handle}{RST}")
         print(f"    {colour}{v.headline()}{RST}")
+        if v.evidence_checked:
+            mark = f"{GRN}verified{RST}" if v.evidence_verified else f"{DIM}nothing verified{RST}"
+            print(f"    {DIM}on-chain evidence:{RST} {mark}")
         for c in v.citations:
             print(f"    {DIM}cited: {c}{RST}")
         print()
@@ -234,6 +260,106 @@ def cmd_coldstart(args) -> int:
     kv("store", st["db_path"])
     kv("counterparties", st["counterparties"])
     kv("schema version", st["schema_version"])
+    return 0
+
+
+def cmd_network(args) -> int:
+    """Show every published rating for an agent, and whether it survives checking."""
+    from .chain import Chain
+    from .network import lookup
+
+    suffix = args.network.replace("-", "_").upper()
+    agent_id = args.agent_id or os.environ.get(f"VOUCH_SUBJECT_AGENT_ID_{suffix}")
+    if not agent_id:
+        print(f"{RED}pass --agent-id, or set VOUCH_SUBJECT_AGENT_ID_{suffix}{RST}")
+        return 2
+
+    chain = Chain(args.network)
+    rule(f"THE NETWORK  ·  what other agents published about #{agent_id}")
+    kv("reputation registry", chain.cfg["reputation"])
+
+    view = lookup(chain, int(agent_id))
+    kv("ratings found", len(view.ratings))
+    print()
+
+    for r in view.ratings:
+        mark = f"{GRN}VERIFIED{RST}" if r.verified else f"{RED}DISCARDED{RST}"
+        print(f"  {BOLD}issuer {r.issuer}{RST}")
+        print(f"    score        {r.score:.2f}/100   {mark}")
+        print(f"    {DIM}status       {r.status}{RST}")
+        if r.uri:
+            print(f"    {DIM}evidence     {r.uri[:72]}{RST}")
+        print(f"    {DIM}tx           {chain.explorer_tx(r.tx)}{RST}")
+        for t in r.testimony:
+            print(f"    {DIM}testimony    {t[:110]}{RST}")
+        print()
+
+    kv("verified disputes", view.verified_disputes)
+    if view.mean_score is not None:
+        kv("mean verified score", f"{view.mean_score:.2f}/100")
+    print(
+        f"\n  {DIM}Only ratings whose file still hashes to the digest committed\n"
+        f"  on-chain are counted. Everything else is recorded and ignored.{RST}"
+    )
+    return 0
+
+
+def cmd_respond(args) -> int:
+    """Exercise ERC-8004's right of reply on a rating made against us.
+
+    The standard ships `appendResponse` so the rated agent can answer, and
+    nobody uses it. A reputation record with only one side on it is a rumour,
+    not evidence.
+    """
+    from .chain import Chain
+    from .network import lookup
+
+    suffix = args.network.replace("-", "_").upper()
+    agent_id = args.agent_id or os.environ.get(f"VOUCH_SUBJECT_AGENT_ID_{suffix}")
+    key = os.environ.get("VOUCH_COUNTERPARTY_KEY")
+    if not agent_id or not key:
+        print(f"{RED}need --agent-id and VOUCH_COUNTERPARTY_KEY (the rated agent's owner){RST}")
+        return 2
+
+    chain = Chain(args.network, private_key=key)
+    rule(f"RIGHT OF REPLY  ·  agent #{agent_id} answers")
+    kv("responder", chain.account.address)
+
+    view = lookup(chain, int(agent_id))
+    target = next((r for r in view.ratings if r.verified), None) or (
+        view.ratings[0] if view.ratings else None
+    )
+    if target is None:
+        print(f"{RED}no ratings to respond to{RST}")
+        return 1
+
+    kv("responding to", f"{target.issuer} · index {target.index}")
+
+    store = EvidenceStore()
+    response = {
+        "schema": "vouch.response/v1",
+        "responder_agent_id": int(agent_id),
+        "in_reply_to": {
+            "issuer": target.issuer,
+            "feedback_index": target.index,
+            "feedback_hash": target.digest,
+        },
+        "statement": args.statement,
+    }
+    receipt = store.put(response)
+    kv("response file", receipt["filename"])
+    kv("responseHash", receipt["hash"])
+
+    if not args.publish:
+        print(f"\n  {DIM}push evidence/ then re-run with --publish{RST}")
+        return 0
+
+    tx = chain.append_response(
+        int(agent_id), target.issuer, target.index,
+        response_uri=receipt["uri"], response_hash=receipt["hash"],
+    )
+    kv("tx", chain.explorer_tx(tx))
+    print(f"\n  {GRN}Both sides are now on the record.{RST}")
     return 0
 
 
@@ -493,8 +619,30 @@ def main(argv=None) -> int:
                    help="skip verifying the URI resolves before committing the hash")
     q.set_defaults(func=cmd_publish, check_uri=True)
 
+    q = sub.add_parser("network", help="what other agents published, and what survives checking")
+    q.add_argument("--network", default="base-sepolia",
+                   choices=["base", "base-sepolia", "ethereum-sepolia"])
+    q.add_argument("--agent-id", type=int, default=None)
+    q.set_defaults(func=cmd_network)
+
+    q = sub.add_parser("respond", help="exercise ERC-8004's right of reply")
+    q.add_argument("--network", default="base-sepolia",
+                   choices=["base", "base-sepolia", "ethereum-sepolia"])
+    q.add_argument("--agent-id", type=int, default=None)
+    q.add_argument("--statement", default=(
+        "Delivery was late because the buyer changed the spec twice after "
+        "escrow funded. Evidence and timestamps attached."))
+    q.add_argument("--publish", action="store_true")
+    q.set_defaults(func=cmd_respond)
+
+    q = sub.add_parser("coldstart", help="session 2: fresh process, memory changes the call")
+    q.add_argument("--network", default="base-sepolia",
+                   choices=["base", "base-sepolia", "ethereum-sepolia"])
+    q.add_argument("--offline", action="store_true",
+                   help="decide from local memory only, skipping the network lookup")
+    q.set_defaults(func=cmd_coldstart)
+
     for name, fn, helptext in (
-        ("coldstart", cmd_coldstart, "session 2: fresh process, memory changes the call"),
         ("tamper", cmd_tamper, "show a forged evidence file being rejected"),
         ("delete-test", cmd_delete_test, "the gate: no memory, no product"),
         ("sibyl", cmd_sibyl, "read SIBYL's real ERC-8004 record on Base"),

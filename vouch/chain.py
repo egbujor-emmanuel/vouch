@@ -242,22 +242,45 @@ class Chain:
             for i in range(len(clients))
         ]
 
-    def feedback_uris(self, agent_id: int, from_block: int | None = None) -> list[dict[str, Any]]:
+    LOG_CHUNK = 800          # public RPCs reject wide eth_getLogs ranges
+    LOG_MAX_LOOKBACK = 250_000
+
+    def feedback_uris(
+        self,
+        agent_id: int,
+        from_block: int | None = None,
+        *,
+        chunk: int | None = None,
+    ) -> list[dict[str, Any]]:
         """Pull feedbackURI + feedbackHash out of NewFeedback logs.
 
-        The registry stores URI and hash in the event rather than in storage, so
-        this is how a consumer finds the evidence file for a given rating.
+        The registry keeps the URI and digest in the event rather than in
+        storage, so logs are the only way to find the evidence for a rating.
+        Public RPCs cap the block range (Base Sepolia answers 413 Payload Too
+        Large), so the window is walked in chunks, newest first. Errors are
+        raised rather than swallowed: an empty result must mean "no ratings",
+        never "the query failed".
         """
+        span = chunk or self.LOG_CHUNK
         latest = self.w3.eth.block_number
-        start = from_block if from_block is not None else max(0, latest - 500_000)
-        logs = self.reputation.events.NewFeedback().get_logs(
-            from_block=start, to_block=latest, argument_filters={"agentId": agent_id}
-        )
-        out = []
-        for lg in logs:
-            a = lg["args"]
-            out.append(
-                {
+        floor = from_block if from_block is not None else max(0, latest - self.LOG_MAX_LOOKBACK)
+
+        out: list[dict[str, Any]] = []
+        seen: set[tuple[str, int]] = set()
+        hi = latest
+        while hi >= floor:
+            lo = max(floor, hi - span + 1)
+            logs = self.reputation.events.NewFeedback().get_logs(
+                from_block=lo, to_block=hi, argument_filters={"agentId": agent_id}
+            )
+            for lg in logs:
+                a = lg["args"]
+                key = (a["clientAddress"].lower(), a["feedbackIndex"])
+                if key in seen:
+                    continue
+                seen.add(key)
+                fh = a["feedbackHash"]
+                out.append({
                     "client": a["clientAddress"],
                     "index": a["feedbackIndex"],
                     "value": a["value"],
@@ -266,13 +289,57 @@ class Chain:
                     "tag2": a["tag2"],
                     "endpoint": a["endpoint"],
                     "feedback_uri": a["feedbackURI"],
-                    "feedback_hash": "0x" + a["feedbackHash"].hex()
-                    if isinstance(a["feedbackHash"], (bytes, bytearray))
-                    else a["feedbackHash"],
+                    "feedback_hash": "0x" + fh.hex() if isinstance(fh, (bytes, bytearray)) else fh,
                     "tx": lg["transactionHash"].hex(),
                     "block": lg["blockNumber"],
-                }
-            )
+                })
+            hi = lo - 1
+        out.sort(key=lambda e: e["block"])
+        return out
+
+    def ratings(self, agent_id: int, *, with_evidence: bool = True) -> list[dict[str, Any]]:
+        """Every rating for an agent, read from storage, enriched from logs.
+
+        Storage is authoritative for who rated whom and what score they gave,
+        and it answers in one call with no block-range limits. The evidence
+        pointer only exists in the event, so logs fill it in where they can. A
+        rating whose URI cannot be located is reported with an empty pointer
+        rather than omitted, because a missing pointer is itself a finding.
+        """
+        clients = self.clients(agent_id)
+        if not clients:
+            return []
+
+        cl, idx, vals, decs, t1, t2, rev = self.reputation.functions.readAllFeedback(
+            agent_id, clients, "", "", False
+        ).call()
+
+        by_key: dict[tuple[str, int], dict[str, Any]] = {}
+        if with_evidence:
+            try:
+                for e in self.feedback_uris(agent_id):
+                    by_key[(e["client"].lower(), e["index"])] = e
+            except Exception as exc:  # logs unavailable; scores still stand
+                by_key = {}
+                self.last_log_error = exc
+
+        out = []
+        for i in range(len(cl)):
+            key = (cl[i].lower(), idx[i])
+            ev = by_key.get(key, {})
+            out.append({
+                "client": cl[i],
+                "index": idx[i],
+                "value": vals[i],
+                "value_decimals": decs[i],
+                "tag1": t1[i],
+                "tag2": t2[i],
+                "revoked": rev[i],
+                "feedback_uri": ev.get("feedback_uri", ""),
+                "feedback_hash": ev.get("feedback_hash", ""),
+                "tx": ev.get("tx", ""),
+                "block": ev.get("block"),
+            })
         return out
 
     # ---- write (needs a funded key and an explicit call) -----------------
@@ -359,6 +426,46 @@ class Chain:
         raw = getattr(signed, "raw_transaction", None) or signed.rawTransaction
         tx_hash = self.w3.eth.send_raw_transaction(raw)
         return tx_hash.hex()
+
+    def append_response(
+        self,
+        agent_id: int,
+        client_address: str,
+        feedback_index: int,
+        *,
+        response_uri: str = "",
+        response_hash: str = "0x" + "00" * 32,
+    ) -> str:
+        """Answer a rating made against you.
+
+        ERC-8004 ships this so the rated agent has a right of reply, and it is
+        as unused as feedbackURI. A record with only the accuser's side on it
+        is a rumour; this is what makes it evidence.
+        """
+        if self.account is None:
+            raise RuntimeError("no private key configured; this client is read-only")
+        self._refuse_mainnet("appendResponse")
+        rh = response_hash
+        if isinstance(rh, str):
+            rh = bytes.fromhex(rh[2:] if rh.startswith("0x") else rh)
+        if len(rh) != 32:
+            raise ValueError("response_hash must be exactly 32 bytes")
+
+        fn = self.reputation.functions.appendResponse(
+            agent_id,
+            self.w3.to_checksum_address(client_address),
+            feedback_index,
+            response_uri,
+            rh,
+        )
+        tx = fn.build_transaction({
+            "from": self.account.address,
+            "nonce": self.w3.eth.get_transaction_count(self.account.address, "pending"),
+            "chainId": self.cfg["chain_id"],
+        })
+        signed = self.account.sign_transaction(tx)
+        raw = getattr(signed, "raw_transaction", None) or signed.rawTransaction
+        return self.w3.eth.send_raw_transaction(raw).hex()
 
     def explorer_tx(self, tx_hash: str) -> str:
         h = tx_hash if tx_hash.startswith("0x") else "0x" + tx_hash

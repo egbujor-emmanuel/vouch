@@ -228,3 +228,50 @@ class TestDecisionsUseTheNetwork:
         )
         assert v.evidence_checked is False
         assert v.decision == ACCEPT_WITH_ESCROW
+
+
+class TestFailuresAreNeverSilent:
+    """Regression: a failed lookup once looked identical to a clean record.
+
+    The public Base Sepolia RPC answers wide eth_getLogs ranges with HTTP 413.
+    lookup() swallowed that and returned zero ratings, so an agent with two
+    published disputes read as spotless. Silence is the dangerous failure.
+    """
+
+    def test_lookup_failure_is_reported_not_hidden(self):
+        class Broken:
+            def ratings(self, agent_id):
+                raise RuntimeError("413 Payload Too Large")
+
+        view = net.lookup(Broken(), 9178)
+        assert view.error is not None
+        assert "413" in view.error
+        assert view.ratings == []
+
+    def test_a_genuinely_empty_record_has_no_error(self):
+        class Empty:
+            def ratings(self, agent_id):
+                return []
+
+        view = net.lookup(Empty(), 9178)
+        assert view.error is None
+        assert view.ratings == []
+
+    def test_storage_backed_read_is_preferred_over_logs(self, served):
+        """ratings() avoids the block-range limits that break feedback_uris()."""
+        blob, digest = seal(make_evidence())
+        served["https://x/e.json"] = blob
+        calls = {"ratings": 0, "logs": 0}
+
+        class Both:
+            def ratings(self, agent_id):
+                calls["ratings"] += 1
+                return [entry("https://x/e.json", digest)]
+
+            def feedback_uris(self, agent_id, from_block=None):
+                calls["logs"] += 1
+                raise AssertionError("should not fall back to logs")
+
+        view = net.lookup(Both(), 9178)
+        assert calls == {"ratings": 1, "logs": 0}
+        assert len(view.verified) == 1

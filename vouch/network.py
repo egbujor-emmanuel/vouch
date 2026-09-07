@@ -62,6 +62,9 @@ class ExternalRating:
 class NetworkView:
     agent_id: int
     ratings: list[ExternalRating] = field(default_factory=list)
+    # Set when the lookup itself failed. Callers must distinguish "this agent
+    # has no ratings" from "we could not find out".
+    error: str | None = None
 
     @property
     def verified(self) -> list[ExternalRating]:
@@ -102,9 +105,19 @@ def lookup(chain, agent_id: int, *, exclude_issuer: str | None = None,
     agents say rather than an echo of what we already hold in memory.
     """
     view = NetworkView(agent_id=agent_id)
+
+    # Prefer the storage-backed read: it is authoritative, needs one call, and
+    # is not subject to the block-range limits that make log queries fail on
+    # public RPCs. Fall back to logs only where `ratings` is unavailable.
     try:
-        entries = chain.feedback_uris(agent_id, from_block=from_block)
-    except Exception:
+        if hasattr(chain, "ratings"):
+            entries = chain.ratings(agent_id)
+        else:
+            entries = chain.feedback_uris(agent_id, from_block=from_block)
+    except Exception as exc:
+        # Never report "no ratings" when the truth is "the lookup failed" —
+        # that silently turns a broken connection into a clean bill of health.
+        view.error = f"{type(exc).__name__}: {exc}"
         return view
 
     for e in entries:
