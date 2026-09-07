@@ -33,6 +33,12 @@ function pythonBin() {
 }
 
 async function run(args) {
+  // A simulated run must never mutate the store the published filings
+  // describe. Point it at its own database unless told otherwise.
+  const env = { ...process.env };
+  if (process.argv.includes("--simulate") && !process.env.VOUCH_DB) {
+    env.VOUCH_DB = ".vouch/simulation.db";
+  }
   const { stdout } = await execFileAsync(pythonBin(), ["-m", "vouch", ...args], {
     cwd: ROOT,
     env: { ...process.env, PYTHONIOENCODING: "utf-8" },

@@ -125,12 +125,16 @@ export async function onJobEvent(evt) {
 
 // --------------------------------------------------------------- simulate
 
+// The scripted counterparty is a genuine stranger: no registry id, so the
+// network lookup correctly finds nothing and the first job is accepted on
+// normal terms. Passing another agent's id here condemned an innocent party.
+const BUYER = process.env.VOUCH_SIM_HANDLE || "acme-render";
 const SCRIPT = [
-  { type: "job.created", jobId: "acp-101", buyerHandle: "swiftrender", buyerAgentId: 4242, service: "render pipeline" },
-  { type: "job.funded", jobId: "acp-101", buyerHandle: "swiftrender", buyerAgentId: 4242 },
-  { type: "job.rejected", jobId: "acp-101", buyerHandle: "swiftrender", buyerAgentId: 4242,
+  { type: "job.created", jobId: "acp-101", buyerHandle: BUYER, buyerAgentId: null, service: "render pipeline" },
+  { type: "job.funded", jobId: "acp-101", buyerHandle: BUYER, buyerAgentId: null },
+  { type: "job.rejected", jobId: "acp-101", buyerHandle: BUYER, buyerAgentId: null,
     detail: "disputed acp-101 after accepting delivery, then short-paid by 60%" },
-  { type: "job.created", jobId: "acp-102", buyerHandle: "swiftrender", buyerAgentId: 4242, service: "render pipeline" },
+  { type: "job.created", jobId: "acp-102", buyerHandle: BUYER, buyerAgentId: null, service: "render pipeline" },
 ];
 
 async function simulate() {
@@ -148,7 +152,7 @@ async function simulate() {
     console.log();
   }
   console.log("  " + "-".repeat(62));
-  console.log("  acp-101 was accepted and acp-102 refused, by the same code.");
+  console.log(`  ${BUYER} was accepted on acp-101 and refused on acp-102, by the same code.`);
   console.log("  The only thing that changed between them is memory.\n");
 }
 
