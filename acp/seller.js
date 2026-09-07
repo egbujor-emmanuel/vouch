@@ -181,7 +181,10 @@ export async function live() {
     "@virtuals-protocol/acp-node-v2"
   );
   const infra = await import("@account-kit/infra");
-  const chain = process.env.ACP_NETWORK === "base" ? infra.base : infra.baseSepolia;
+  // Base is the default because that is where the agent actually exists: the
+  // testnet backend answers "Agent not found" for it. Set ACP_NETWORK to
+  // override once an agent is registered on the dev backend too.
+  const chain = process.env.ACP_NETWORK === "base-sepolia" ? infra.baseSepolia : infra.base;
 
   // Testnet is a different backend *and* a different Privy app. The adapter
   // defaults to the mainnet pair, so a sandbox agent authenticating against
