@@ -1,0 +1,16 @@
+# Vercel serves docs/ as a static site. Everything below is the Python
+# project, which must not be detected as a serverless runtime.
+requirements.txt
+pyproject.toml
+pytest.ini
+render.yaml
+vouch/
+scripts/
+tests/
+acp/
+evidence/
+agents/
+.venv/
+.vouch/
+*.py
+*.db
