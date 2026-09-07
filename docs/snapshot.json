@@ -1,0 +1,112 @@
+{
+  "generated_at": "2026-09-07T03:59:37+00:00",
+  "network": {
+    "name": "base-sepolia",
+    "chain_id": 84532,
+    "rpc": "https://sepolia.base.org",
+    "explorer": "https://sepolia.basescan.org",
+    "reputation": "0x8004B663056A597Dffe9eCcC1965A193B7388713",
+    "identity": "0x8004A818BFB912233c491871b3d84c89A494BD9e"
+  },
+  "issuer": {
+    "handle": "attrito.vouch",
+    "address": "0xEf67DD86cC1E9FE35De02e2c0A8C47E9a3f7ed83",
+    "agent_id": 9177
+  },
+  "subject_agent_id": 9178,
+  "memory": {
+    "schema_version": null,
+    "counterparties": [
+      {
+        "handle": "pixelforge",
+        "agent_id": 7331,
+        "jobs_completed": 3,
+        "jobs_disputed": 0,
+        "flagged": false
+      },
+      {
+        "handle": "swiftrender",
+        "agent_id": 9178,
+        "jobs_completed": 0,
+        "jobs_disputed": 1,
+        "flagged": false
+      }
+    ],
+    "policy": {
+      "version": 1,
+      "decline_if_flagged": true,
+      "dispute_ratio_decline": 0.5,
+      "dispute_ratio_reprice": 0.2,
+      "reprice_multiplier": 2.0,
+      "escrow_required_after_disputes": 1,
+      "unknown_counterparty": "accept_with_escrow",
+      "notes": "Rules are memory. Editing this record changes what the agent will do."
+    },
+    "incidents": [
+      {
+        "ts": "2026-09-07T03:14:08.165Z",
+        "handle": "swiftrender",
+        "kind": "dispute",
+        "detail": "disputed job-001 after delivery was accepted, then short-paid the invoice by 60%"
+      },
+      {
+        "ts": "2026-09-07T03:14:08.194Z",
+        "handle": "pixelforge",
+        "kind": "note",
+        "detail": "delivered job-A, job-B, job-C on time"
+      }
+    ]
+  },
+  "offline_verdicts": {
+    "newcomer": {
+      "decision": "ACCEPT_WITH_ESCROW",
+      "handle": "newcomer",
+      "reason": "no prior history in memory",
+      "quoted_price_usd": 25.0,
+      "standard_price_usd": 25.0,
+      "escrow_required": true,
+      "citations": [],
+      "evidence_checked": false,
+      "evidence_verified": null
+    },
+    "swiftrender": {
+      "decision": "REFUSE",
+      "handle": "swiftrender",
+      "reason": "1 of 1 jobs disputed (100%)",
+      "quoted_price_usd": 0.0,
+      "standard_price_usd": 25.0,
+      "escrow_required": false,
+      "citations": [
+        "2026-09-07T03:14:08.165Z [dispute] disputed job-001 after delivery was accepted, then short-paid the invoice by 60%"
+      ],
+      "evidence_checked": false,
+      "evidence_verified": null
+    }
+  },
+  "log_hints": [
+    {
+      "client": "0xEf67DD86cC1E9FE35De02e2c0A8C47E9a3f7ed83",
+      "index": 1,
+      "block": 46469433,
+      "uri": "https://raw.githubusercontent.com/egbujor-emmanuel/vouch/main/evidence/e00ff94396cf8db21a30ee7f4bf9c30d5f5c47184ea5b67a982a9dd7ab64190a.json"
+    },
+    {
+      "client": "0x39Aef27afc033749b97DA6918f0418F3d6C99Ab2",
+      "index": 1,
+      "block": 46487809,
+      "uri": "https://raw.githubusercontent.com/egbujor-emmanuel/vouch/main/evidence/4c7e00194abe1cabdb5e4f8617f9e5c62b9c01f2aff0dd0371998ab9d25bba60.json"
+    }
+  ],
+  "evidence_base_url": "https://raw.githubusercontent.com/egbujor-emmanuel/vouch/main/evidence",
+  "evidence_files": [
+    "4c7e00194abe1cabdb5e4f8617f9e5c62b9c01f2aff0dd0371998ab9d25bba60.json",
+    "4fafa13dfed2fae8d2bbc9c1931c5c60ae69aeff7f06f5ddc908063fa99364d1.json",
+    "74cfd92e139aec6c8551b3cfb1b3daf5eb0e4cfcad3a0c70e93c924d4d2da824.json",
+    "89df837bb8ed9c084b9571e26097899ef4ae6bec7a225c47b29058cc81b346c2.json",
+    "91b43d5ed2f43cdfee1d530919215802f17eafde0c87ad394b04348e65a53248.json",
+    "a9fe9558afb9f0b8d0ae84cdbf0288e6b0d867248b91974a019cd8ec28b5b2f3.json",
+    "da195f7870b16696e6499d23628827d2dcabb4357a8d464926d6d81a92b93bc4.json",
+    "e00ff94396cf8db21a30ee7f4bf9c30d5f5c47184ea5b67a982a9dd7ab64190a.json",
+    "f91ce3bf52581589121012b310f375d80bdf240821125fc434aad9b68bcea275.json"
+  ]
+}

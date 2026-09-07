@@ -38,6 +38,7 @@ def _chain(network: str):
 
 class Handler(BaseHTTPRequestHandler):
     network = "base-sepolia"
+    read_only = False
 
     def log_message(self, *a):  # keep the terminal clean for filming
         pass
@@ -212,10 +213,28 @@ class Handler(BaseHTTPRequestHandler):
         }
 
 
-def serve(port: int = 8765, network: str = "base-sepolia", open_browser: bool = True) -> int:
+def serve(
+    port: int = 8765,
+    network: str = "base-sepolia",
+    open_browser: bool = True,
+    host: str = "127.0.0.1",
+    read_only: bool = False,
+) -> int:
     Handler.network = network
-    httpd = ThreadingHTTPServer(("127.0.0.1", port), Handler)
-    url = f"http://127.0.0.1:{port}"
+    Handler.read_only = read_only
+
+    # A hosted dashboard must never hold a signing key. It only ever reads, so
+    # refuse to start if one is present rather than quietly carrying it.
+    if read_only:
+        leaked = [k for k in ("VOUCH_PRIVATE_KEY", "VOUCH_COUNTERPARTY_KEY",
+                              "VOUCH_SECOND_ISSUER_KEY", "SELLER_SIGNER_PRIVATE_KEY")
+                  if os.environ.get(k)]
+        if leaked:
+            print(f"  refusing to start read-only with keys present: {', '.join(leaked)}")
+            return 2
+
+    httpd = ThreadingHTTPServer((host, port), Handler)
+    url = f"http://{'127.0.0.1' if host in ('0.0.0.0', '') else host}:{port}"
     print(f"  Vouch dashboard on {url}   (network: {network})")
     print("  ctrl-c to stop")
     if open_browser:

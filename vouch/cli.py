@@ -266,7 +266,8 @@ def cmd_coldstart(args) -> int:
 def cmd_ui(args) -> int:
     from .ui import serve
 
-    return serve(port=args.port, network=args.network, open_browser=args.open_browser)
+    return serve(port=args.port, network=args.network, open_browser=args.open_browser,
+                 host=args.host, read_only=args.read_only)
 
 
 def cmd_network(args) -> int:
@@ -646,6 +647,9 @@ def main(argv=None) -> int:
     q.add_argument("--network", default="base-sepolia",
                    choices=["base", "base-sepolia", "ethereum-sepolia"])
     q.add_argument("--no-open", dest="open_browser", action="store_false")
+    q.add_argument("--host", default="127.0.0.1", help="0.0.0.0 to expose when hosted")
+    q.add_argument("--read-only", action="store_true",
+                   help="refuse to start if any signing key is present")
     q.set_defaults(func=cmd_ui, open_browser=True)
 
     q = sub.add_parser("coldstart", help="session 2: fresh process, memory changes the call")

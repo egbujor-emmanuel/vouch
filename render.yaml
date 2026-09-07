@@ -1,0 +1,27 @@
+# Render blueprint. Free web service, read-only dashboard.
+#
+# The dashboard only ever reads: local memory plus keyless RPC calls. No
+# private key is set here and none is needed — publishing stays on a machine
+# you control.
+services:
+  - type: web
+    name: vouch
+    runtime: python
+    plan: free
+    # The memory store is gitignored, so build it from scratch. seed is
+    # deterministic and needs no keys: it writes local memory only.
+    buildCommand: pip install -r requirements.txt && python -m vouch seed --network base-sepolia
+    startCommand: python -m vouch ui --host 0.0.0.0 --port $PORT --no-open --read-only
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      - key: VOUCH_DB
+        value: .vouch/demo.db
+      - key: VOUCH_EVIDENCE_BASE_URL
+        value: https://raw.githubusercontent.com/egbujor-emmanuel/vouch/main/evidence
+      - key: VOUCH_SUBJECT_AGENT_ID_BASE_SEPOLIA
+        value: "9178"
+      - key: VOUCH_AGENT_ID_BASE_SEPOLIA
+        value: "9177"
+      - key: VOUCH_ADDRESS
+        value: "0xEf67DD86cC1E9FE35De02e2c0A8C47E9a3f7ed83"
