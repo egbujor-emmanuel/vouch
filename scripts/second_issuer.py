@@ -113,12 +113,18 @@ def main() -> int:
     Path(SECOND_DB).parent.mkdir(parents=True, exist_ok=True)
     mem = VouchMemory(SECOND_DB, tenant_id=SECOND_TENANT)
     mem.upsert_counterparty(HANDLE, agent_id=subject, jobs_completed=1, jobs_disputed=1)
-    mem.record_incident(
-        HANDLE,
-        kind="dispute",
-        detail="abandoned job mid-delivery after the escrow released, never returned the funds",
-        job_ref="job-B7",
+    # Only log the incident once. Re-running the script must not invent a
+    # second dispute, or the evidence inflates every time it is regenerated.
+    already = any(
+        (e.get("extra") or {}).get("job_ref") == "job-B7" for e in mem.incidents(HANDLE)
     )
+    if not already:
+        mem.record_incident(
+            HANDLE,
+            kind="dispute",
+            detail="abandoned job mid-delivery after the escrow released, never returned the funds",
+            job_ref="job-B7",
+        )
     verdict = TrustEngine(mem).decide(HANDLE, standard_price_usd=40.0)
     print(f"second issuer's own verdict: {verdict.headline()}")
 

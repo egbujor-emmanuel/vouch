@@ -38,6 +38,9 @@ class ExternalRating:
     tx: str
     verified: bool
     status: str
+    # The feedback index identifies which rating this is, per issuer. It is
+    # what appendResponse needs to attach a reply to the right entry.
+    index: int = 0
     evidence: dict[str, Any] | None = None
 
     @property
@@ -132,7 +135,7 @@ def lookup(chain, agent_id: int, *, exclude_issuer: str | None = None,
         rating = ExternalRating(
             issuer=issuer, score=score, tag1=e.get("tag1", ""), tag2=e.get("tag2", ""),
             uri=uri, digest=digest, tx=e.get("tx", ""),
-            verified=False, status="unchecked",
+            verified=False, status="unchecked", index=int(e.get("index", 0) or 0),
         )
 
         # A rating with no evidence pointer is exactly the status quo we exist
