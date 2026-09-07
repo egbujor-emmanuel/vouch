@@ -242,8 +242,12 @@ class Chain:
             for i in range(len(clients))
         ]
 
-    LOG_CHUNK = 800          # public RPCs reject wide eth_getLogs ranges
-    LOG_MAX_LOOKBACK = 250_000
+    # Public RPCs reject wide eth_getLogs ranges (Base Sepolia answers 413
+    # above ~1k blocks), so the window is walked in chunks. The lookback is
+    # deliberately modest: 250k blocks would mean 300+ round trips and a UI
+    # that appears to hang. Discovered pointers are cached by the caller.
+    LOG_CHUNK = 1_000
+    LOG_MAX_LOOKBACK = 40_000
 
     def feedback_uris(
         self,
@@ -297,7 +301,13 @@ class Chain:
         out.sort(key=lambda e: e["block"])
         return out
 
-    def ratings(self, agent_id: int, *, with_evidence: bool = True) -> list[dict[str, Any]]:
+    def ratings(
+        self,
+        agent_id: int,
+        *,
+        with_evidence: bool = True,
+        memory=None,
+    ) -> list[dict[str, Any]]:
         """Every rating for an agent, read from storage, enriched from logs.
 
         Storage is authoritative for who rated whom and what score they gave,
@@ -316,12 +326,26 @@ class Chain:
 
         by_key: dict[tuple[str, int], dict[str, Any]] = {}
         if with_evidence:
-            try:
-                for e in self.feedback_uris(agent_id):
-                    by_key[(e["client"].lower(), e["index"])] = e
-            except Exception as exc:  # logs unavailable; scores still stand
-                by_key = {}
-                self.last_log_error = exc
+            # Ask memory first. Pointers are immutable once written, so a cache
+            # hit is as good as the log and costs nothing.
+            missing = []
+            for i in range(len(cl)):
+                key = (cl[i].lower(), idx[i])
+                hit = memory.recall_pointer(agent_id, cl[i], idx[i]) if memory else None
+                if hit:
+                    by_key[key] = hit
+                else:
+                    missing.append(key)
+
+            if missing:
+                try:
+                    for e in self.feedback_uris(agent_id):
+                        k = (e["client"].lower(), e["index"])
+                        by_key[k] = e
+                        if memory:
+                            memory.remember_pointer(agent_id, e["client"], e["index"], e)
+                except Exception as exc:  # logs unavailable; scores still stand
+                    self.last_log_error = exc
 
         out = []
         for i in range(len(cl)):

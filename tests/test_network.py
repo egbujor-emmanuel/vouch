@@ -240,7 +240,7 @@ class TestFailuresAreNeverSilent:
 
     def test_lookup_failure_is_reported_not_hidden(self):
         class Broken:
-            def ratings(self, agent_id):
+            def ratings(self, agent_id, **kw):
                 raise RuntimeError("413 Payload Too Large")
 
         view = net.lookup(Broken(), 9178)
@@ -250,7 +250,7 @@ class TestFailuresAreNeverSilent:
 
     def test_a_genuinely_empty_record_has_no_error(self):
         class Empty:
-            def ratings(self, agent_id):
+            def ratings(self, agent_id, **kw):
                 return []
 
         view = net.lookup(Empty(), 9178)
@@ -264,7 +264,7 @@ class TestFailuresAreNeverSilent:
         calls = {"ratings": 0, "logs": 0}
 
         class Both:
-            def ratings(self, agent_id):
+            def ratings(self, agent_id, **kw):
                 calls["ratings"] += 1
                 return [entry("https://x/e.json", digest)]
 

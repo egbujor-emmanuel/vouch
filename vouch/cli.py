@@ -263,6 +263,12 @@ def cmd_coldstart(args) -> int:
     return 0
 
 
+def cmd_ui(args) -> int:
+    from .ui import serve
+
+    return serve(port=args.port, network=args.network, open_browser=args.open_browser)
+
+
 def cmd_network(args) -> int:
     """Show every published rating for an agent, and whether it survives checking."""
     from .chain import Chain
@@ -634,6 +640,13 @@ def main(argv=None) -> int:
         "escrow funded. Evidence and timestamps attached."))
     q.add_argument("--publish", action="store_true")
     q.set_defaults(func=cmd_respond)
+
+    q = sub.add_parser("ui", help="local dashboard: the whole story in a browser")
+    q.add_argument("--port", type=int, default=8765)
+    q.add_argument("--network", default="base-sepolia",
+                   choices=["base", "base-sepolia", "ethereum-sepolia"])
+    q.add_argument("--no-open", dest="open_browser", action="store_false")
+    q.set_defaults(func=cmd_ui, open_browser=True)
 
     q = sub.add_parser("coldstart", help="session 2: fresh process, memory changes the call")
     q.add_argument("--network", default="base-sepolia",

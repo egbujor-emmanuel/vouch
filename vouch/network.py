@@ -98,7 +98,7 @@ def _fetch(uri: str) -> bytes:
 
 
 def lookup(chain, agent_id: int, *, exclude_issuer: str | None = None,
-           from_block: int | None = None) -> NetworkView:
+           from_block: int | None = None, memory=None) -> NetworkView:
     """Gather every published rating for an agent and verify each one.
 
     `exclude_issuer` drops our own ratings, so the view is genuinely what other
@@ -111,7 +111,7 @@ def lookup(chain, agent_id: int, *, exclude_issuer: str | None = None,
     # public RPCs. Fall back to logs only where `ratings` is unavailable.
     try:
         if hasattr(chain, "ratings"):
-            entries = chain.ratings(agent_id)
+            entries = chain.ratings(agent_id, memory=memory)
         else:
             entries = chain.feedback_uris(agent_id, from_block=from_block)
     except Exception as exc:

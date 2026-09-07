@@ -204,6 +204,34 @@ class VouchMemory:
         hits.sort(key=lambda e: str(e.get("ts") or e.get("created_at") or ""))
         return hits
 
+    # ---- REFERENCE tier: remembered evidence pointers --------------------
+
+    def remember_pointer(self, agent_id: int, client: str, index: int, entry: dict[str, Any]) -> None:
+        """Cache where a rating's evidence lives.
+
+        The URI and digest exist only in the NewFeedback event, and public RPCs
+        cap log queries hard enough that rediscovering them costs seconds every
+        time. Remembering them is the product's own thesis applied to itself.
+        """
+        key = f"vouch/pointer/{agent_id}/{client.lower()}/{index}"
+        self.m.set_reference(key, entry, metadata={"cached_at": _now()})
+
+    def recall_pointer(self, agent_id: int, client: str, index: int) -> dict[str, Any] | None:
+        key = f"vouch/pointer/{agent_id}/{client.lower()}/{index}"
+        try:
+            row = self.m.get_reference(key)
+        except NotFoundError:
+            return None
+        if not row:
+            return None
+        body = row.get("body") if isinstance(row, dict) else row
+        if isinstance(body, (str, bytes)):
+            try:
+                body = json.loads(body)
+            except (ValueError, TypeError):
+                return None
+        return body if isinstance(body, dict) else None
+
     # ---- HOT tier: what is in flight right now --------------------------
 
     def set_open_job(self, job: dict[str, Any]) -> None:
