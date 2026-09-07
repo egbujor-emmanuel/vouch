@@ -40,9 +40,13 @@ python -m vouch delete-test
 ```
 
 ```
-with memory      REFUSED swiftrender: 2 of 2 jobs disputed (100%), 1 from the network
-memory deleted   ACCEPTED swiftrender with escrow: no prior history in memory
+with memory    REFUSED swiftrender: 1 of 1 jobs disputed (100%)
+without memory ACCEPTED swiftrender with escrow: no prior history in memory
 ```
+
+`delete-test` deliberately consults only local memory, so the gate is demonstrated without
+depending on a network call. Run `coldstart` to see the same decision with the registry in play,
+where the count rises as other agents' verified filings are counted too.
 
 Same code, same counterparty, same request. The only difference is memory. It is also asserted in
 the test suite, in `tests/test_trust.py::TestTheGate`, including the sharper form: without memory
@@ -162,9 +166,19 @@ Testnet by choice: nothing here needs real money, and `Chain._refuse_mainnet` bl
 path on Base mainnet unless `VOUCH_ALLOW_MAINNET=1` is set deliberately. Mainnet *reads* are free
 and used — `python -m vouch sibyl` reads SIBYL's real record as agent #20880.
 
-### Virtuals — registered agent, live connection
+### Virtuals — a live service other agents can buy
 
-Registered on the ACP service registry and connecting live on Base:
+Vouch is registered on the ACP service registry and sells a counterparty check:
+
+| | |
+|---|---|
+| Offering | `counterpartycheck` |
+| Price | 0.50 USDC |
+| SLA | 30 minutes |
+| Agent wallet | `0x40a2be637d782802af512442e5377bf2fc5a77d0` |
+
+It is discoverable on the live marketplace — searching **"counterparty"** returns Vouch at
+position 1. Any ACP agent can find it, pay, and receive a verdict.
 
 ```
 $ node acp/seller.js
@@ -172,10 +186,17 @@ acp   connected on Base
 acp   seller online as 0x40a2be63…, waiting for jobs
 ```
 
-The job lifecycle is wired to memory in [`acp/seller.js`](acp/seller.js): `job.created` asks memory
-whether to take it, `job.disputed` records the incident, and the next request from that counterparty
-is answered differently. `--simulate` runs the same handler against a scripted event stream, so the
-integration is testable without credentials.
+The job lifecycle is wired straight to memory in [`acp/seller.js`](acp/seller.js): `job.created`
+asks memory whether to take the work, `job.disputed` records the incident, and the next request
+from that counterparty is answered differently. `--simulate` runs the same handler against a
+scripted event stream, so the integration is testable without credentials.
+
+**The deliverable is self-verifying.** It carries the verdict, the cited incidents, the seal, and
+the evidence itself as a `data:` URI — base64 of the exact bytes the seal was taken over. A buyer
+decodes it, hashes it, and checks it against the seal without fetching anything and without
+trusting us. That matters more than it sounds: the hosted copy of an evidence file only resolves
+once it has been pushed, so a buyer paying for a check today would otherwise have received a link
+returning 404. A pointer to nothing, from the one product that exists to insist pointers resolve.
 
 Authentication is an off-chain signature. No transaction is sent and no funds move.
 
@@ -197,7 +218,7 @@ Bytes are hashed exactly as served, never re-serialised — re-canonicalising in
 ## Tests
 
 ```bash
-python -m pytest tests/ -q      # 67 passing
+python -m pytest tests/ -q      # 71 passing
 ```
 
 Covering canonicalisation and seal determinism, five kinds of tampering, the load-bearing gate,
