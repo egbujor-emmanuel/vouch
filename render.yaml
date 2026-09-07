@@ -16,7 +16,7 @@ services:
       - key: PYTHON_VERSION
         value: "3.11.9"
       - key: VOUCH_DB
-        value: .vouch/demo.db
+        value: .vouch/memory.db
       - key: VOUCH_EVIDENCE_BASE_URL
         value: https://raw.githubusercontent.com/egbujor-emmanuel/vouch/main/evidence
       - key: VOUCH_SUBJECT_AGENT_ID_BASE_SEPOLIA

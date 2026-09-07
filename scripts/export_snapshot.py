@@ -49,7 +49,7 @@ def main() -> int:
     load_env()
     suffix = args.network.replace("-", "_").upper()
     subject = int(os.environ.get(f"VOUCH_SUBJECT_AGENT_ID_{suffix}", "0") or 0)
-    db = os.environ.get("VOUCH_DB", ".vouch/demo.db")
+    db = os.environ.get("VOUCH_DB", ".vouch/memory.db")
 
     if not Path(db).exists():
         print(f"no memory at {db} — run `python -m vouch seed` first")

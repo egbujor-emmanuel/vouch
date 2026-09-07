@@ -52,7 +52,7 @@ NETWORKS = {
     "ethereum-sepolia": ETHEREUM_SEPOLIA,
 }
 
-# SIBYL's own on-chain identity, used by the demo to read a real record.
+# SIBYL's own on-chain identity, for reading a real record on Base mainnet.
 SIBYL_AGENT_ID = 20880
 
 REPUTATION_ABI = json.loads(

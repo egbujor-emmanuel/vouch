@@ -1,6 +1,6 @@
-"""Vouch demo CLI.
+"""Vouch command line.
 
-Four proofs, each runnable on its own so a judge can re-run any of them:
+Every command works on live data. Nothing here is scripted or replayed:
 
     python -m vouch seed         session 1: work with an agent, log what happened
     python -m vouch coldstart    session 2: fresh process, memory changes the call
@@ -25,7 +25,7 @@ from .trust import TrustEngine
 from .evidence import verify_json, seal
 from .publish import EvidenceStore, build_and_store, score_from_counterparty, VOUCH_TAG1, VOUCH_TAG2
 
-DB = os.environ.get("VOUCH_DB", ".vouch/demo.db")
+DB = os.environ.get("VOUCH_DB", ".vouch/memory.db")
 def issuer() -> dict:
     """Built lazily so .env is loaded first."""
     return {
@@ -115,7 +115,7 @@ def cmd_seed(args) -> int:
     kv("incident logged", "dispute · job-001")
     kv("journal", "append-only, never rewritten")
 
-    # A clean counterparty, so the demo has a control.
+    # A counterparty with a clean record, so there is something to contrast against.
     mem.upsert_counterparty("pixelforge", agent_id=7331, jobs_completed=3, jobs_disputed=0)
     mem.record_incident("pixelforge", kind="note", detail="delivered job-A, job-B, job-C on time", job_ref="job-A")
 

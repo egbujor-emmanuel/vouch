@@ -23,7 +23,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 DOCS = Path(__file__).resolve().parent.parent / "docs"
-DB = os.environ.get("VOUCH_DB", ".vouch/demo.db")
+DB = os.environ.get("VOUCH_DB", ".vouch/memory.db")
 
 TYPES = {
     ".html": "text/html; charset=utf-8",

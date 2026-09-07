@@ -5,7 +5,7 @@
 
 Registers the issuer identity (Vouch itself) and a counterparty identity owned
 by a *different* wallet, because the registry rejects self-feedback. Writes the
-resulting agent ids back to .env so the demo can use them.
+resulting agent ids back to .env so the agent can use them.
 
 Costs gas. Nothing here runs unless you ask for it by name.
 """
