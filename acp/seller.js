@@ -17,7 +17,7 @@
 
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import vouch from "./vouch.js";
 
@@ -168,7 +168,7 @@ function toEvent(session, entry) {
   };
 }
 
-async function live() {
+export async function live() {
   loadEnv();
   const required = ["SELLER_WALLET_ADDRESS", "SELLER_WALLET_ID", "SELLER_SIGNER_PRIVATE_KEY"];
   const missing = required.filter((k) => !process.env[k]);
@@ -183,11 +183,24 @@ async function live() {
   const infra = await import("@account-kit/infra");
   const chain = process.env.ACP_NETWORK === "base" ? infra.base : infra.baseSepolia;
 
+  // Testnet is a different backend *and* a different Privy app. The adapter
+  // defaults to the mainnet pair, so a sandbox agent authenticating against
+  // them fails with a bare "Server error 500" and no explanation.
+  const constants = await import(
+    "@virtuals-protocol/acp-node-v2/dist/core/constants.js"
+  );
+  const testnet = chain.id !== 8453;
   const provider = await PrivyAlchemyEvmProviderAdapter.create({
     walletAddress: process.env.SELLER_WALLET_ADDRESS,
     walletId: process.env.SELLER_WALLET_ID,
     signerPrivateKey: process.env.SELLER_SIGNER_PRIVATE_KEY,
     chains: [chain],
+    ...(testnet
+      ? {
+          serverUrl: constants.ACP_TESTNET_SERVER_URL,
+          privyAppId: constants.TESTNET_PRIVY_APP_ID,
+        }
+      : {}),
     ...(process.env.BUILDER_CODE ? { builderCode: process.env.BUILDER_CODE } : {}),
   });
 
@@ -214,7 +227,12 @@ async function live() {
   log("acp", `seller online as ${process.env.SELLER_WALLET_ADDRESS}, waiting for jobs`);
 }
 
-const invoked = import.meta.url === `file://${process.argv[1]}`.replace(/\\/g, "/");
+// pathToFileURL, not string surgery: on Windows a path such as
+// "C:\Users\Yoma Maroh\..." percent-encodes the space in import.meta.url, so a
+// hand-built file:// string never matches and the script silently does nothing.
+const invoked = Boolean(
+  process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href,
+);
 if (invoked || SIMULATE) {
   (SIMULATE ? simulate() : live()).catch((e) => {
     console.error(e);
