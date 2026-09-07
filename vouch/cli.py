@@ -356,9 +356,24 @@ def cmd_sibyl(args) -> int:
 
 def cmd_decide(args) -> int:
     """Should I take this job? Reads memory, returns a verdict as JSON."""
+    chain = None
+    issuer_addr = os.environ.get("VOUCH_ADDRESS")
+    network = args.network or os.environ.get("VOUCH_NETWORK")
+    if network and args.agent_id:
+        # Only reach for the chain when there is an id to look up; a network
+        # hiccup must never turn a local decision into a crash.
+        try:
+            from .chain import Chain
+
+            chain = Chain(network)
+        except Exception:
+            chain = None
     with VouchMemory(args.db or DB) as mem:
-        verdict = TrustEngine(mem).decide(
-            args.handle, standard_price_usd=args.price, job_ref=args.job_ref
+        verdict = TrustEngine(mem, chain=chain, issuer_address=issuer_addr).decide(
+            args.handle,
+            standard_price_usd=args.price,
+            job_ref=args.job_ref,
+            agent_id=args.agent_id,
         )
     out = verdict.to_dict()
     out["headline"] = verdict.headline()
@@ -492,6 +507,11 @@ def main(argv=None) -> int:
     d.add_argument("--handle", required=True)
     d.add_argument("--price", type=float, default=0.0)
     d.add_argument("--job-ref", default=None)
+    d.add_argument("--agent-id", type=int, default=None,
+                   help="ERC-8004 id, so the network can be consulted for a stranger")
+    d.add_argument("--network", default=None,
+                   choices=["base", "base-sepolia", "ethereum-sepolia"],
+                   help="consult published evidence on this chain")
     d.add_argument("--db", default=None)
     d.add_argument("--compact", action="store_true")
     d.set_defaults(func=cmd_decide)

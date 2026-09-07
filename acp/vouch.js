@@ -46,9 +46,11 @@ async function run(args) {
 }
 
 /** Should this job be accepted, repriced, escrowed, or refused? */
-export async function decide(handle, { price = 0, jobRef = null } = {}) {
+export async function decide(handle, { price = 0, jobRef = null, agentId = null } = {}) {
   const args = ["decide", "--handle", handle, "--price", String(price)];
   if (jobRef) args.push("--job-ref", jobRef);
+  // Lets the engine consult the network for a counterparty we have never met.
+  if (agentId != null) args.push("--agent-id", String(agentId));
   return run(args);
 }
 
