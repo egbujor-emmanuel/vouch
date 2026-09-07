@@ -301,6 +301,41 @@ class Chain:
         out.sort(key=lambda e: e["block"])
         return out
 
+    def _feedback_at_block(self, agent_id: int, block: int) -> list[dict[str, Any]]:
+        """One direct query in a tight window around a known block.
+
+        Deliberately not routed through feedback_uris, which walks backwards
+        from the chain head: handed a block from months ago it would scan the
+        whole interval rather than the five blocks that matter.
+        """
+        try:
+            logs = self.reputation.events.NewFeedback().get_logs(
+                from_block=max(0, block - 2),
+                to_block=block + 2,
+                argument_filters={"agentId": agent_id},
+            )
+        except Exception:
+            return []
+
+        out = []
+        for lg in logs:
+            a = lg["args"]
+            fh = a["feedbackHash"]
+            out.append({
+                "client": a["clientAddress"],
+                "index": a["feedbackIndex"],
+                "value": a["value"],
+                "value_decimals": a["valueDecimals"],
+                "tag1": a["tag1"],
+                "tag2": a["tag2"],
+                "endpoint": a["endpoint"],
+                "feedback_uri": a["feedbackURI"],
+                "feedback_hash": "0x" + fh.hex() if isinstance(fh, (bytes, bytearray)) else fh,
+                "tx": lg["transactionHash"].hex(),
+                "block": lg["blockNumber"],
+            })
+        return out
+
     def ratings(
         self,
         agent_id: int,
@@ -326,6 +361,16 @@ class Chain:
 
         by_key: dict[tuple[str, int], dict[str, Any]] = {}
         if with_evidence:
+            # Committed hints first. A filing older than the RPC log window is
+            # unfindable by scanning, and would otherwise degrade to "no
+            # evidence attached" — the very failure this project objects to.
+            from .filings import hints as known_hints, remember
+
+            for h in known_hints(self.cfg["name"], agent_id):
+                found = self._feedback_at_block(agent_id, h["block"])
+                for e in found:
+                    by_key[(e["client"].lower(), e["index"])] = e
+
             # Ask memory first. Pointers are immutable once written, so a cache
             # hit is as good as the log and costs nothing.
             missing = []
@@ -344,6 +389,8 @@ class Chain:
                         by_key[k] = e
                         if memory:
                             memory.remember_pointer(agent_id, e["client"], e["index"], e)
+                    if by_key:
+                        remember(self.cfg["name"], agent_id, list(by_key.values()))
                 except Exception as exc:  # logs unavailable; scores still stand
                     self.last_log_error = exc
 

@@ -66,3 +66,47 @@ def test_evidence_files_are_named_by_their_own_digest():
 
     for path in (ROOT / "evidence").glob("*.json"):
         assert hash_hex(path.read_bytes()) == "0x" + path.stem, path.name
+
+
+class TestFilingsStayFindable:
+    """Regression: a filing aged out of the RPC log window and vanished.
+
+    Evidence pointers live only in NewFeedback logs, and public RPCs cap how
+    far back a log query reaches — about a day on Base Sepolia. Our first
+    filing crossed that boundary roughly 23 hours after it was made and started
+    reporting "no evidence attached", which is indistinguishable from a rating
+    that never had evidence: precisely the failure this project objects to.
+    """
+
+    def test_the_index_covers_every_published_filing(self):
+        import json as _json
+
+        index = ROOT / "filings.json"
+        assert index.is_file(), "filings.json is what keeps old filings findable"
+        data = _json.loads(index.read_text(encoding="utf-8"))
+
+        entries = data.get("base-sepolia", {}).get("9178", [])
+        assert len(entries) >= 2, "both published filings must be indexed"
+        for e in entries:
+            assert e["block"] > 0, "a hint without a block cannot locate anything"
+            assert e["uri"].startswith("https://"), e
+            assert e["client"].startswith("0x")
+
+    def test_every_indexed_uri_has_its_evidence_file(self):
+        """A hint pointing at a file we no longer ship would resolve to nothing."""
+        import json as _json
+
+        data = _json.loads((ROOT / "filings.json").read_text(encoding="utf-8"))
+        for network in data.values():
+            for entries in network.values():
+                for e in entries:
+                    name = e["uri"].rsplit("/", 1)[-1]
+                    assert (ROOT / "evidence" / name).is_file(), f"missing {name}"
+
+    def test_hints_are_not_trusted_blindly(self):
+        """The index must only ever locate; it must never assert a seal."""
+        src = (ROOT / "vouch" / "filings.py").read_text(encoding="utf-8")
+        assert "feedback_hash" not in src, (
+            "storing a seal in the index would create a second copy that could "
+            "disagree with the chain"
+        )
