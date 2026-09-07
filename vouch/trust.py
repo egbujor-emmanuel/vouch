@@ -51,8 +51,18 @@ class Verdict:
 
 
 class TrustEngine:
-    def __init__(self, memory: VouchMemory):
+    """Decides from memory, and — when a chain is wired in — from the network.
+
+    Own memory alone makes this a private ledger: an agent that remembers only
+    its own bruises. Passing a `chain` lets it also read what *other* issuers
+    published about a counterparty, verify each file against its on-chain
+    digest, and count only what survives that check.
+    """
+
+    def __init__(self, memory: VouchMemory, chain=None, issuer_address: str | None = None):
         self.mem = memory
+        self.chain = chain
+        self.issuer_address = issuer_address
 
     def decide(
         self,
@@ -60,9 +70,34 @@ class TrustEngine:
         *,
         standard_price_usd: float,
         job_ref: str | None = None,
+        agent_id: int | None = None,
+        use_network: bool = True,
     ) -> Verdict:
         policy = self.mem.get_policy()
         citations: list[str] = []
+
+        # What other agents have published about this one. Ratings whose
+        # evidence is missing or whose bytes no longer match the committed
+        # digest are collected but never counted.
+        view = None
+        if self.chain is not None and use_network:
+            cp_row = self.mem.get_counterparty(handle) or {}
+            subject = agent_id or cp_row.get("agent_id")
+            if subject:
+                from .network import lookup
+
+                view = lookup(
+                    self.chain, int(subject), exclude_issuer=self.issuer_address
+                )
+                for r in view.verified:
+                    citations.append(
+                        f"network [{r.issuer[:10]}…] {r.score:.2f}/100 · verified · {r.tx[:12]}…"
+                    )
+                    citations.extend(r.testimony)
+                for r in view.rejected:
+                    citations.append(
+                        f"network [{r.issuer[:10]}…] DISCARDED — {r.status}"
+                    )
 
         # 1. The flagged tier is absolute. Nothing below it gets evaluated.
         flag = self.mem.is_flagged(handle)
@@ -79,25 +114,51 @@ class TrustEngine:
             return verdict
 
         cp = self.mem.get_counterparty(handle)
+        net_disputed = view.verified_disputes if view else 0
+        checked = view is not None
+        verified_any = bool(view and view.verified) if checked else None
 
-        # 2. An agent we have never met. Policy decides the posture.
+        # 2. An agent we have never met ourselves. The network still gets a say:
+        #    somebody else's verified evidence is the whole point of publishing.
         if not cp:
+            if net_disputed:
+                verdict = Verdict(
+                    decision=REFUSE,
+                    handle=handle,
+                    reason=(
+                        f"never dealt with them, but {net_disputed} verified "
+                        f"dispute(s) published by {len(view.verified)} other agent(s)"
+                    ),
+                    quoted_price_usd=0.0,
+                    standard_price_usd=standard_price_usd,
+                    citations=citations,
+                    evidence_checked=checked,
+                    evidence_verified=verified_any,
+                )
+                self._record(verdict, job_ref)
+                return verdict
+
             posture = policy.get("unknown_counterparty", "accept_with_escrow")
             decision = ACCEPT_WITH_ESCROW if posture == "accept_with_escrow" else ACCEPT
             verdict = Verdict(
                 decision=decision,
                 handle=handle,
-                reason="no prior history in memory",
+                reason="no prior history in memory"
+                + (", nothing verified on the network" if checked else ""),
                 quoted_price_usd=standard_price_usd,
                 standard_price_usd=standard_price_usd,
                 escrow_required=decision == ACCEPT_WITH_ESCROW,
-                citations=[],
+                citations=citations,
+                evidence_checked=checked,
+                evidence_verified=verified_any,
             )
             self._record(verdict, job_ref)
             return verdict
 
         completed = int(cp.get("jobs_completed", 0) or 0)
-        disputed = int(cp.get("jobs_disputed", 0) or 0)
+        own_disputed = int(cp.get("jobs_disputed", 0) or 0)
+        # Our own experience and the network's verified experience both count.
+        disputed = own_disputed + net_disputed
         total = completed + disputed
         ratio = (disputed / total) if total else 0.0
 
@@ -114,10 +175,15 @@ class TrustEngine:
             verdict = Verdict(
                 decision=REFUSE,
                 handle=handle,
-                reason=f"{disputed} of {total} jobs disputed ({ratio:.0%})",
+                reason=(
+                    f"{disputed} of {total} jobs disputed ({ratio:.0%})"
+                    + (f", {net_disputed} from the network" if net_disputed else "")
+                ),
                 quoted_price_usd=0.0,
                 standard_price_usd=standard_price_usd,
                 citations=citations,
+                evidence_checked=checked,
+                evidence_verified=verified_any,
             )
             self._record(verdict, job_ref)
             return verdict
@@ -128,11 +194,16 @@ class TrustEngine:
             verdict = Verdict(
                 decision=REPRICE,
                 handle=handle,
-                reason=f"{disputed} prior dispute(s) on {total} jobs",
+                reason=(
+                    f"{disputed} prior dispute(s) on {total} jobs"
+                    + (f", {net_disputed} from the network" if net_disputed else "")
+                ),
                 quoted_price_usd=round(standard_price_usd * mult, 6),
                 standard_price_usd=standard_price_usd,
                 escrow_required=True,
                 citations=citations,
+                evidence_checked=checked,
+                evidence_verified=verified_any,
             )
             self._record(verdict, job_ref)
             return verdict
@@ -147,6 +218,8 @@ class TrustEngine:
                 standard_price_usd=standard_price_usd,
                 escrow_required=True,
                 citations=citations,
+                evidence_checked=checked,
+                evidence_verified=verified_any,
             )
             self._record(verdict, job_ref)
             return verdict
@@ -154,10 +227,13 @@ class TrustEngine:
         verdict = Verdict(
             decision=ACCEPT,
             handle=handle,
-            reason=f"{completed} clean job(s), no disputes on record",
+            reason=f"{completed} clean job(s), no disputes on record"
+            + (", network clean too" if checked and not net_disputed else ""),
             quoted_price_usd=standard_price_usd,
             standard_price_usd=standard_price_usd,
             citations=citations,
+            evidence_checked=checked,
+            evidence_verified=verified_any,
         )
         self._record(verdict, job_ref)
         return verdict

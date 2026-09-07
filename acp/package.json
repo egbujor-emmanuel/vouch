@@ -9,6 +9,6 @@
     "start": "node seller.js"
   },
   "dependencies": {
-    "@virtuals-protocol/acp-node-v2": "^2.0.0"
+    "@virtuals-protocol/acp-node-v2": "^0.1.12"
   }
 }
