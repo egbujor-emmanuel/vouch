@@ -269,6 +269,9 @@ class VouchMemory:
     def __exit__(self, *exc) -> None:
         self.close()
 
+    def schema_version(self) -> int | None:
+        return self.m.schema_version()
+
     def stats(self) -> dict[str, Any]:
         return {
             "db_path": self.db_path,

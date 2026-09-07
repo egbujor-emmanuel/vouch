@@ -94,7 +94,7 @@ def main() -> int:
         },
         "subject_agent_id": subject,
         "memory": {
-            "schema_version": mem.schema_version() if hasattr(mem, "schema_version") else None,
+            "schema_version": mem.schema_version(),
             "counterparties": [
                 {
                     "handle": c.get("handle"),
