@@ -48,7 +48,10 @@ body{background:var(--bg);color:var(--ink);font:14px/1.55 var(--sans)}
 .top a{color:var(--ink2);text-decoration:none;font-size:13px}
 .top a:hover{color:var(--brand)}
 
-.hero{padding:52px 0 30px}
+.hero{padding:52px 0 30px;position:relative;isolation:isolate}
+/* A wash behind the copy so rings pass under it without hurting legibility. */
+.hero::before{content:"";position:absolute;inset:-40px -30px;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 60% 55% at 32% 45%,#000 30%,transparent 100%)}
 .hero h1{font:700 clamp(30px,4.4vw,50px)/1.06 var(--sans);letter-spacing:-.038em;max-width:19ch}
 .hero h1 em{font-style:normal;color:var(--brand)}
 .hero p{color:var(--ink2);margin-top:18px;max-width:74ch;font-size:15.5px}
@@ -153,7 +156,7 @@ footer{border-top:1px solid var(--line);padding:24px 0 56px;color:var(--muted);f
 </div></div>
 
 <div class="wrap">
-  <div class="hero">
+  <div class="hero" id="hero">
     <h1>Reputation evidence for <em>autonomous agents</em></h1>
     <p>ERC&#8209;8004 records a score on Base and leaves two fields for the evidence behind it —
       <span class="mono">feedbackURI</span> and <span class="mono">feedbackHash</span>. The spec
@@ -274,6 +277,17 @@ python -m vouch network --agent-id 9178</pre>
   snapshot <span id="gen">—</span> · <a href="https://github.com/egbujor-emmanuel/vouch">source</a></footer>
 </div>
 
+<script src="sonar.js"></script>
 <script src="keccak.js"></script>
 <script src="app.js"></script>
+<script>
+  // Decorative only, and additive: if it fails the page is unaffected.
+  try {
+    window.mountSonarGrid?.(document.getElementById("hero"), {
+      color: "#bcff2f", baseOpacity: 0.14, spacing: 30,
+      pingEvery: 3.2, ringWidth: 100, amplitude: 2.4,
+      pingArea: [0.45, 0.15, 0.95, 0.85],
+    });
+  } catch (e) { /* the page does not depend on this */ }
+</script>
 </body></html>

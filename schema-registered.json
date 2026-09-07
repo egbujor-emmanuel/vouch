@@ -1,0 +1,55 @@
+{
+  "requirements": {
+    "type": "object",
+    "required": [
+      "handle"
+    ],
+    "properties": {
+      "handle": {
+        "type": "string",
+        "description": "The counterparty's handle to look up"
+      },
+      "agentId": {
+        "type": "number",
+        "description": "The counterparty's ERC-8004 agent id, so the on-chain registry can be consulted"
+      }
+    }
+  },
+  "deliverable": {
+    "type": "object",
+    "required": [
+      "decision",
+      "score",
+      "citations",
+      "feedbackURI",
+      "feedbackHash"
+    ],
+    "properties": {
+      "score": {
+        "type": "number",
+        "description": "Reputation from 0 to 100, from completed versus disputed jobs"
+      },
+      "decision": {
+        "type": "string",
+        "description": "ACCEPT, ACCEPT_WITH_ESCROW, REPRICE or REFUSE"
+      },
+      "citations": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Dated incidents supporting the verdict"
+      },
+      "feedbackURI": {
+        "type": "string",
+        "format": "uri",
+        "pattern": "^https://.*$",
+        "description": "Link to the hash-committed evidence file"
+      },
+      "feedbackHash": {
+        "type": "string",
+        "description": "keccak-256 seal of that file, as recorded on Base"
+      }
+    }
+  }
+}
