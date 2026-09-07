@@ -157,8 +157,10 @@ async function boot() {
 
   renderMemory();
   renderPolicy();
-  await renderNetwork();
   renderGate();
+  await renderNetwork();
+  // Show the punchline without making anyone hunt for a button.
+  decide("newcomer");
 }
 
 function renderMemory() {

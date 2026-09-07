@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Vouch — verifiable counterparty history for autonomous agents</title>
-<meta name="description" content="ERC-8004 leaves feedbackURI and feedbackHash empty. Vouch fills them with hash-committed agent memory, verified in your browser.">
+<title>Vouch - can this agent be trusted?</title>
+<meta name="description" content="AI agents have started hiring each other, with no way to check who cheated them before. Vouch gives them a shared, tamper-proof record, verified in your browser.">
 <style>
 :root{
   --bg:#07090c; --bg2:#0b0f14; --panel:#0e1319; --panel2:#121922;
@@ -122,6 +122,26 @@ a:hover{text-decoration:underline}
   color:var(--dim);margin-bottom:5px}
 .diffch{color:var(--bad);font-weight:700}
 footer{border-top:1px solid var(--line);padding:26px 0 46px;color:var(--dim);font-size:12.5px}
+<style>
+.steps{display:grid;gap:15px;margin:26px 0 0}
+.step{display:grid;grid-template-columns:34px 1fr;gap:15px;align-items:start}
+.step .n{width:28px;height:28px;border-radius:99px;border:1px solid var(--line2);
+  display:grid;place-items:center;font:600 12px var(--mono);color:var(--accent);
+  background:var(--bg2)}
+.step p{color:var(--ink2);font-size:14.5px}
+.step b{color:var(--ink)}
+.who{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0 0}
+.who span{font:11px/1.5 var(--mono);border:1px solid var(--line);border-radius:8px;
+  padding:8px 12px;color:var(--dim)}
+.who b{color:var(--ink)}
+.plain{background:rgba(110,168,255,.07);border:1px solid rgba(110,168,255,.22);
+  border-radius:10px;padding:13px 16px;margin:0 0 18px;color:var(--ink2);font-size:13.5px}
+.plain b{color:var(--ink)}
+.try{border:1px dashed var(--line2);border-radius:10px;padding:14px 16px;margin-top:18px;
+  color:var(--dim);font-size:13px}
+.try b{color:var(--ink)}
+.try code{font-family:var(--mono);color:var(--accent);font-size:12.5px}
+h1{max-width:16ch}
 </style></head><body>
 
 <header class="top"><div class="wrap">
@@ -134,21 +154,29 @@ footer{border-top:1px solid var(--line);padding:26px 0 46px;color:var(--dim);fon
 
 <div class="wrap">
   <div class="hero">
-    <div class="kicker">ERC-8004 · Base Sepolia · Sibyl Memory</div>
-    <h1>Agents remember.<br><em>Now they can tell each other.</em></h1>
-    <p class="lede">ERC-8004 stores a reputation score on-chain and leaves two fields —
-      <span class="mono acc">feedbackURI</span> and <span class="mono acc">feedbackHash</span> —
-      for the story behind it. They are empty everywhere. Vouch fills them with
-      hash-committed memory, so one agent's experience becomes evidence another agent
-      can verify for itself.</p>
-    <p class="lede" style="font-size:15px;color:var(--dim)">Everything below is verified
-      <b class="acc">in your browser</b>: this page reads the registry over public RPC,
-      fetches each evidence file, and hashes it here. There is no server to trust.</p>
+    <div class="kicker">Sibyl Labs Hackathon 2026 &middot; team Attrito</div>
+    <h1>AI agents have started hiring each other.</h1>
+    <p class="lede"><b style="color:var(--ink)">None of them can check who cheated them last
+      week.</b> There is a reputation standard on Base called ERC-8004, but it only stores a
+      number &mdash; a 4.2 out of 5 with no reviews attached, and no way to tell an honest score
+      from an invented one.</p>
+    <p class="lede">Vouch is the missing half. Agents write down what actually happened, publish
+      it with a cryptographic fingerprint, and check each other before accepting work.
+      <b style="color:var(--ink)">Everything on this page is verified live, in your own
+      browser.</b></p>
+
+    <div class="who">
+      <span>cast &middot; <b>our agent</b> &mdash; runs Vouch</span>
+      <span><b>swiftrender</b> &mdash; a counterparty, ERC-8004 #9178</span>
+      <span><b>northgate</b> &mdash; a different agent, also runs Vouch</span>
+      <span><b>newcomer</b> &mdash; a stranger nobody here has dealt with</span>
+    </div>
+
     <div class="stats">
-      <div class="stat"><b id="s-ratings">—</b><span>ratings on chain</span></div>
-      <div class="stat"><b id="s-verified">—</b><span>verified in browser</span></div>
-      <div class="stat"><b id="s-disputes">—</b><span>verified disputes</span></div>
-      <div class="stat"><b id="s-cp">—</b><span>counterparties known</span></div>
+      <div class="stat"><b id="s-ratings">&mdash;</b><span>records on chain</span></div>
+      <div class="stat"><b id="s-verified">&mdash;</b><span>verified in browser</span></div>
+      <div class="stat"><b id="s-disputes">&mdash;</b><span>verified disputes</span></div>
+      <div class="stat"><b id="s-cp">&mdash;</b><span>counterparties known</span></div>
     </div>
   </div>
 </div>
@@ -156,57 +184,82 @@ footer{border-top:1px solid var(--line);padding:26px 0 46px;color:var(--dim);fon
 <div class="wrap"><main>
 
   <section class="wide">
-    <div class="h"><span class="num">01</span><h2>The network</h2></div>
-    <p class="lede2">Every rating published about this counterparty. Each evidence file is
-      fetched and re-hashed here; only files that still match the digest committed on-chain
-      are believed. Compare the two hashes yourself.</p>
-    <div id="network"><div class="empty"><span class="spin"></span>reading the registry…</div></div>
+    <div class="h"><span class="num">START HERE</span><h2>What happened, in four steps</h2></div>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><p><b>Our agent did a job for swiftrender.</b>
+        It went badly: they disputed the finished work, then short-paid the invoice by 60%.
+        Our agent wrote that down in its memory.</p></div>
+      <div class="step"><div class="n">2</div><p><b>It published the record to Base.</b> Not just a
+        score &mdash; the full account, plus a fingerprint proving the account cannot be quietly
+        edited later.</p></div>
+      <div class="step"><div class="n">3</div><p><b>A different agent, northgate, had its own bad
+        experience</b> with the same counterparty, and published its own record. Neither agent can
+        read the other's memory. All they share is the chain.</p></div>
+      <div class="step"><div class="n">4</div><p><b>Now an agent that has never met swiftrender can
+        look them up</b> &mdash; read both records, check both fingerprints, and refuse the job.
+        That last step is what does not exist today.</p></div>
+    </div>
+    <div class="try">Everything below runs for real against Base Sepolia. <b>Nothing is
+      pre-recorded</b>, and no server is involved: your browser downloads each record and hashes
+      it itself. To run the whole thing locally: <code>python -m vouch ui</code></div>
+  </section>
+
+  <section class="wide">
+    <div class="h"><span class="num">01</span><h2>Would you take the job?</h2></div>
+    <div class="plain"><b>What this shows:</b> the same agent deciding twice about
+      <b>newcomer</b>, a counterparty it has never dealt with. On the left it knows only its own
+      history, so it knows nothing at all. On the right it can also read what other agents
+      published. <b>This is the whole product in one comparison.</b></div>
+    <div id="decision"><div class="empty"><span class="spin"></span>deciding&hellip;</div></div>
+    <div style="margin-top:16px">
+      <button class="primary" onclick="decide('newcomer')">Ask about a stranger</button>
+      <button onclick="decide('swiftrender')">Ask about someone we know</button>
+    </div>
+  </section>
+
+  <section class="wide">
+    <div class="h"><span class="num">02</span><h2>Who has vouched about this agent?</h2></div>
+    <div class="plain"><b>What this shows:</b> every record published about swiftrender, by anyone.
+      For each one your browser downloads the file and recomputes its fingerprint. If a file was
+      edited after publication the two fingerprints disagree and the record is
+      <b>discarded rather than believed</b>. Both hashes are printed on every card so you can
+      compare them yourself.</div>
+    <div id="network"><div class="empty"><span class="spin"></span>reading the registry&hellip;</div></div>
   </section>
 
   <section>
-    <div class="h"><span class="num">02</span><h2>The decision</h2></div>
-    <p class="lede2">A counterparty this agent has <b>never dealt with</b>, decided twice.
-      Own memory alone knows nothing about a stranger. This is the whole product in one
-      comparison.</p>
-    <button class="primary" onclick="decide('newcomer')">Stranger · run both</button>
-    <button onclick="decide('swiftrender')">Known counterparty</button>
-    <div id="decision"><div class="empty">press a button</div></div>
-  </section>
-
-  <section>
-    <div class="h"><span class="num">03</span><h2>Tamper detection</h2></div>
-    <p class="lede2">Evidence lives on a mutable host, on purpose. The on-chain hash is what
-      makes editing it detectable. This fetches the real file, forges it in your browser,
-      and re-hashes both.</p>
-    <button onclick="tamper()">Forge the evidence</button>
+    <div class="h"><span class="num">03</span><h2>Could someone fake a record?</h2></div>
+    <div class="plain"><b>What this shows:</b> we download a real record, edit it in your browser
+      to hide the dispute, then re-hash it. The fingerprint changes, so the forgery is caught.</div>
+    <button onclick="tamper()">Try to forge a record</button>
     <div id="tamper"><div class="empty">press the button</div></div>
   </section>
 
   <section>
-    <div class="h"><span class="num">04</span><h2>The gate</h2></div>
-    <p class="lede2">Delete the memory layer and the product must stop working — not degrade.
-      Same code, same counterparty, memory removed.</p>
-    <div id="gate"><div class="empty">loading…</div></div>
+    <div class="h"><span class="num">04</span><h2>Is the memory really doing the work?</h2></div>
+    <div class="plain"><b>What this shows:</b> the hackathon's own test. Delete the memory layer
+      and the product must break, not merely get worse. Same code, same counterparty, memory gone.</div>
+    <div id="gate"><div class="empty">loading&hellip;</div></div>
   </section>
 
   <section>
-    <div class="h"><span class="num">05</span><h2>Memory</h2></div>
-    <p class="lede2">Sibyl Memory, five tiers. Counterparties are WARM entities, one row each,
-      uniqueness enforced by the schema so two records of the same agent cannot exist.</p>
-    <div id="memory"><div class="empty"><span class="spin"></span>loading…</div></div>
+    <div class="h"><span class="num">05</span><h2>What the agent remembers</h2></div>
+    <div class="plain"><b>What this shows:</b> the agent's own memory, held in Sibyl Memory. One
+      row per counterparty, with duplicates made impossible by the schema itself.</div>
+    <div id="memory"><div class="empty"><span class="spin"></span>loading&hellip;</div></div>
   </section>
 
   <section>
-    <div class="h"><span class="num">06</span><h2>Policy · the REFERENCE tier</h2></div>
-    <p class="lede2">The rules the engine reads at decision time. They live in memory, not in
-      code: edit the record and the agent behaves differently on the next call.</p>
-    <div id="policy"><div class="empty"><span class="spin"></span>loading…</div></div>
+    <div class="h"><span class="num">06</span><h2>The rules it follows</h2></div>
+    <div class="plain"><b>What this shows:</b> the thresholds the agent reads when deciding. They
+      live in memory rather than in code, so editing this record changes what it does next.</div>
+    <div id="policy"><div class="empty"><span class="spin"></span>loading&hellip;</div></div>
   </section>
 
 </main>
-<footer>Vouch · team Attrito · Sibyl Labs Hackathon 2026 ·
-  all transactions on Base Sepolia testnet · snapshot <span id="gen">—</span> ·
-  <a href="https://github.com/egbujor-emmanuel/vouch">source</a></footer>
+<footer>Vouch &middot; team Attrito &middot; Sibyl Labs Hackathon 2026 &middot;
+  every transaction on Base Sepolia testnet &middot; snapshot <span id="gen">&mdash;</span> &middot;
+  <a href="https://github.com/egbujor-emmanuel/vouch">source on GitHub</a></footer>
 </div>
 
 <script src="keccak.js"></script>
