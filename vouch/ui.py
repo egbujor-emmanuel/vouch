@@ -63,7 +63,11 @@ def build_snapshot(network: str) -> dict:
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "network": {
             "name": network, "chain_id": chain.cfg["chain_id"],
-            "rpc": chain.cfg["rpc"], "explorer": chain.cfg["explorer"],
+            "rpc": chain.cfg["rpc"],
+            "rpcs": [chain.cfg["rpc"],
+                     "https://base-sepolia-rpc.publicnode.com",
+                     "https://base-sepolia.drpc.org"],
+            "explorer": chain.cfg["explorer"],
             "reputation": chain.cfg["reputation"], "identity": chain.cfg["identity"],
         },
         "issuer": {

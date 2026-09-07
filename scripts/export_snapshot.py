@@ -30,6 +30,19 @@ from vouch.trust import TrustEngine  # noqa: E402
 
 OUT = Path("docs/snapshot.json")
 
+# A judge gets one look at the page. Public endpoints rate-limit, and a single
+# throttled request is enough to render an agent with two filings as having
+# none — which is exactly the failure this project exists to complain about.
+# All three answer with permissive CORS.
+RPCS = {
+    "base-sepolia": [
+        "https://sepolia.base.org",
+        "https://base-sepolia-rpc.publicnode.com",
+        "https://base-sepolia.drpc.org",
+    ],
+    "base": ["https://mainnet.base.org", "https://base-rpc.publicnode.com"],
+}
+
 
 def load_env(path=".env") -> None:
     p = Path(path)
@@ -83,6 +96,7 @@ def main() -> int:
             "name": args.network,
             "chain_id": chain.cfg["chain_id"],
             "rpc": "https://sepolia.base.org",
+            "rpcs": RPCS.get(args.network, [chain.cfg["rpc"]]),
             "explorer": chain.cfg["explorer"],
             "reputation": chain.cfg["reputation"],
             "identity": chain.cfg["identity"],

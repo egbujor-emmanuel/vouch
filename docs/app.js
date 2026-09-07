@@ -11,12 +11,11 @@
 const $ = (id) => document.getElementById(id);
 const esc = (s) =>
   String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-const row = (k, v) => `<div class="r"><span class="k">${esc(k)}</span><span class="v">${v}</span></div>`;
 const short = (s, n = 22) => (s ? esc(String(s).slice(0, n)) + "…" : "");
 const busy = (id, msg) => ($(id).innerHTML = `<div class="empty blink">${esc(msg)}</div>`);
-const stampFor = (ok) => `<span class="stamp land ${ok ? "ok" : "bad"}">${ok ? "VERIFIED" : "STRUCK"}</span>`;
 
 let SNAP = null;
+let RPC_OK = null;   // the endpoint that last answered
 let VERIFIED = [];
 
 /* ---------- chain ---------- */
@@ -24,15 +23,37 @@ let VERIFIED = [];
 const NEW_FEEDBACK_SIG =
   "NewFeedback(uint256,address,uint64,int128,uint8,string,string,string,string,string,bytes32)";
 
+/** Try each endpoint in turn.
+ *
+ * Public RPCs throttle, and a single rate-limited request would render an
+ * agent with two filings as having none — indistinguishable from an agent
+ * that never had any, which is the precise failure this page exists to
+ * expose. Anyone reading gets one look, so one flaky response must not
+ * decide what they see. */
 async function rpc(method, params) {
-  const res = await fetch(SNAP.network.rpc, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
-  });
-  const j = await res.json();
-  if (j.error) throw new Error(j.error.message || "rpc error");
-  return j.result;
+  const all = SNAP.network.rpcs?.length ? SNAP.network.rpcs : [SNAP.network.rpc];
+  // Once an endpoint answers, keep using it. Without this every later call
+  // pays the full cost of the dead ones again, and a page doing dozens of
+  // reads crawls instead of loading.
+  const endpoints = RPC_OK ? [RPC_OK, ...all.filter((u) => u !== RPC_OK)] : all;
+  let lastError = null;
+  for (const url of endpoints) {
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const j = await res.json();
+      if (j.error) throw new Error(j.error.message || "rpc error");
+      RPC_OK = url;
+      return j.result;
+    } catch (e) {
+      lastError = e;
+    }
+  }
+  throw lastError ?? new Error("no rpc endpoint answered");
 }
 
 const padTopic = (n) => "0x" + BigInt(n).toString(16).padStart(64, "0");
