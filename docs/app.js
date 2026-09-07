@@ -162,6 +162,7 @@ async function boot() {
   renderGate();
   await renderNetwork();
   decide("newcomer"); // the punchline should not need hunting for
+  renderDispute();
 }
 
 function renderMemory() {
@@ -335,3 +336,215 @@ window.tamper = tamper;
 boot().catch((e) => {
   document.getElementById("network").innerHTML = `<div class="empty">${esc(e.message)}</div>`;
 });
+
+/* ---------- check any agent on the register ---------------------------
+ *
+ * The page stops being a story here and becomes a tool: put in any
+ * ERC-8004 agent id and it is looked up live. Most will come back with
+ * ratings that have no statement attached, which is precisely the gap
+ * this project exists to fill.
+ */
+
+const selector = (sig) => keccak256(new TextEncoder().encode(sig)).slice(0, 10);
+const abiUint = (n) => BigInt(n).toString(16).padStart(64, "0");
+
+async function ethCall(to, data) {
+  return rpc("eth_call", [{ to, data }, "latest"]);
+}
+
+/** Decode an ABI address[] return value. */
+function decodeAddressArray(hex) {
+  const d = hex.slice(2);
+  if (d.length < 128) return [];
+  const off = Number(BigInt("0x" + d.slice(0, 64))) * 2;
+  const len = Number(BigInt("0x" + d.slice(off, off + 64)));
+  const out = [];
+  for (let i = 0; i < len; i++) {
+    const w = d.slice(off + 64 + i * 64, off + 128 + i * 64);
+    out.push("0x" + w.slice(24));
+  }
+  return out;
+}
+
+async function inspect(agentId) {
+  const box = $("inspect");
+  const say = (m) => (box.innerHTML = `<div class="empty blink">${esc(m)}</div>`);
+  if (!agentId || !/^\d+$/.test(String(agentId))) {
+    say("enter a numeric agent id");
+    return;
+  }
+
+  say(`looking up agent #${agentId} on ${SNAP.network.name}…`);
+
+  // Who has rated this agent. A storage read, so no block-range limits.
+  let clients = [];
+  try {
+    clients = decodeAddressArray(
+      await ethCall(SNAP.network.reputation, selector("getClients(uint256)") + abiUint(agentId))
+    );
+  } catch (e) {
+    box.innerHTML = `<div class="empty">could not reach the register: ${esc(e.message)}</div>`;
+    return;
+  }
+
+  if (!clients.length) {
+    box.innerHTML =
+      row("agent", `<span class="mono">#${esc(agentId)}</span>`) +
+      row("raters", "0") +
+      `<div class="why" style="margin-top:12px">No one has rated this agent yet. An empty
+       record is at least honest — unlike a score with nothing behind it.</div>`;
+    return;
+  }
+
+  say(`agent #${agentId}: ${clients.length} rater(s) found — searching for their statements…`);
+
+  // Statements live in the logs. Walk a bounded window newest-first so an
+  // arbitrary agent still answers in seconds rather than minutes.
+  const topic0 = keccak256(new TextEncoder().encode(NEW_FEEDBACK_SIG));
+  const latest = Number(BigInt(await rpc("eth_blockNumber", [])));
+  const CHUNK = 800, WINDOW = 60000;
+  const found = [];
+  for (let hi = latest; hi > latest - WINDOW && found.length < clients.length; hi -= CHUNK) {
+    const lo = Math.max(0, hi - CHUNK + 1);
+    say(`agent #${agentId}: scanning blocks ${lo.toLocaleString()}–${hi.toLocaleString()}…`);
+    let logs = [];
+    try {
+      logs = await rpc("eth_getLogs", [{
+        address: SNAP.network.reputation,
+        fromBlock: "0x" + lo.toString(16), toBlock: "0x" + hi.toString(16),
+        topics: [topic0, padTopic(agentId)],
+      }]);
+    } catch { continue; }
+    for (const lg of logs) found.push(decodeFeedback(lg));
+  }
+
+  const checked = [];
+  for (const f of found) checked.push(await verifyRating(f));
+  const withEvidence = checked.filter((r) => r.uri);
+  const verified = checked.filter((r) => r.verified);
+
+  box.innerHTML =
+    row("agent", `<span class="mono">#${esc(agentId)} on ${esc(SNAP.network.name)}</span>`) +
+    row("agents that rated it", clients.length) +
+    row("statements located", found.length) +
+    row("with evidence attached",
+        `<b style="color:${withEvidence.length ? "var(--stamp-ok)" : "var(--stamp-bad)"}">${withEvidence.length}</b>`) +
+    row("seals verified here",
+        `<b style="color:${verified.length ? "var(--stamp-ok)" : "var(--faint)"}">${verified.length}</b>`) +
+    (found.length
+      ? checked.map((r) => `<div class="stmt ${r.verified ? "ok" : "bad"}">
+          <div class="hd">
+            <div><div class="score">${(r.value / 10 ** r.decimals).toFixed(2)}<small>/100</small></div>
+              <span class="mono" style="color:var(--faint)">by ${esc(r.client.slice(0, 18))}…</span></div>
+            ${stampFor(r.verified)}
+          </div>
+          ${row("finding", esc(r.status))}
+        </div>`).join("")
+      : `<div class="why" style="margin-top:12px">Raters exist but no statement was found in the
+         last ${WINDOW.toLocaleString()} blocks.</div>`) +
+    (found.length && !withEvidence.length
+      ? `<div class="why" style="margin-top:14px"><b>This is the gap.</b> The score exists, but
+         there is nothing behind it: no account of what happened, and nothing to check. That is
+         what ERC-8004 leaves empty and what Vouch fills.</div>`
+      : "");
+}
+
+window.inspect = inspect;
+
+/* ---------- the right of reply ---------------------------------------
+ *
+ * ERC-8004 ships appendResponse so an agent that has been rated can answer.
+ * Nobody uses it, so a record carries only the accuser's side. This is the
+ * other half: the accused files a rebuttal, sealed the same way, and both
+ * sides stand on the register.
+ *
+ * The topic hash below was read off a real log rather than derived from a
+ * guessed event signature — several plausible spellings did not match.
+ */
+const RESPONSE_TOPIC0 = "0xb1c6be0b5b8aef6539e2fac0fd131a2faa7b49edf8e505b5eb0ad487d56051d4";
+
+function decodeResponse(log) {
+  const d = log.data.slice(2);
+  const slot = (i) => d.slice(i * 64, (i + 1) * 64);
+  const off = Number(BigInt("0x" + slot(1))) * 2;
+  const len = Number(BigInt("0x" + d.slice(off, off + 64)));
+  return {
+    agentId: Number(BigInt(log.topics[1])),
+    accuser: "0x" + log.topics[2].slice(26),
+    responder: "0x" + log.topics[3].slice(26),
+    feedbackIndex: Number(BigInt("0x" + slot(0))),
+    uri: new TextDecoder().decode(hexToBytes(d.slice(off + 64, off + 64 + len * 2))),
+    hash: "0x" + slot(2),
+    tx: log.transactionHash,
+    block: parseInt(log.blockNumber, 16),
+  };
+}
+
+async function renderDispute() {
+  const box = $("dispute");
+  if (!box) return;
+  box.innerHTML = `<div class="empty blink">searching the register for a rebuttal…</div>`;
+
+  // Filter on the agent id with a null topic0, so this does not depend on
+  // knowing every event signature the registry emits.
+  const agent = padTopic(SNAP.subject_agent_id);
+  const latest = Number(BigInt(await rpc("eth_blockNumber", [])));
+  let found = null;
+  for (let hi = latest; hi > latest - 40000 && !found; hi -= 800) {
+    const lo = Math.max(0, hi - 799);
+    let logs = [];
+    try {
+      logs = await rpc("eth_getLogs", [{
+        address: SNAP.network.reputation,
+        fromBlock: "0x" + lo.toString(16), toBlock: "0x" + hi.toString(16),
+        topics: [null, agent],
+      }]);
+    } catch { continue; }
+    for (const lg of logs) {
+      if (lg.topics[0].toLowerCase() === RESPONSE_TOPIC0 && lg.topics.length === 4) {
+        found = decodeResponse(lg);
+        break;
+      }
+    }
+  }
+
+  if (!found) {
+    box.innerHTML = `<div class="empty">no rebuttal has been filed against this record</div>`;
+    return;
+  }
+
+  // Check the rebuttal exactly as we check an accusation. A reply that cannot
+  // be verified deserves no more weight than a statement that cannot.
+  let verified = false, statement = null;
+  try {
+    const bytes = new Uint8Array(await (await fetch(found.uri, { cache: "no-store" })).arrayBuffer());
+    verified = keccak256(bytes).toLowerCase() === found.hash.toLowerCase();
+    if (verified) statement = JSON.parse(new TextDecoder().decode(bytes));
+  } catch { /* left unverified */ }
+
+  const accusation = VERIFIED.find(
+    (r) => r.client.toLowerCase() === found.accuser.toLowerCase() && r.index === found.feedbackIndex
+  );
+
+  box.innerHTML = `<div class="split fade">
+      <div class="pane"><h3>the accusation</h3>
+        <div class="dec bad">DISPUTED</div>
+        <div class="why">${esc(accusation ? (testimonyOf(accusation)[0] || accusation.status) : "filed against this agent")}</div>
+        ${row("deposed by", `<span class="mono">${esc(found.accuser.slice(0, 18))}…</span>`)}
+      </div>
+      <div class="vs">VS</div>
+      <div class="pane"><h3>the reply</h3>
+        <div class="dec ${verified ? "ok" : "warn"}">ANSWERED</div>
+        <div class="why">${esc(statement ? statement.statement : "rebuttal filed but not verifiable")}</div>
+        ${row("filed by", `<span class="mono">${esc(found.responder.slice(0, 18))}…</span>`)}
+      </div>
+    </div>
+    ${row("answering statement", `#${found.feedbackIndex}`)}
+    <div class="seal ${verified ? "ok" : "bad"}"><s>reply seal, recomputed here</s>${esc(found.hash)}
+      <div style="margin-top:10px">${stampFor(verified)}</div></div>
+    ${row("filed in", `<a class="mono" target="_blank" rel="noopener" href="${esc(SNAP.network.explorer)}/tx/${esc(found.tx)}">${short(found.tx, 18)} ↗</a>`)}
+    <div class="why" style="margin-top:14px">Both sides now stand on the register, each sealed.
+      A record with only the accuser on it is a rumour; this is what makes it evidence.</div>`;
+}
+
+window.renderDispute = renderDispute;

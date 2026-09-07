@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-07T06:22:16+00:00",
+  "generated_at": "2026-09-07T06:38:32+00:00",
   "network": {
     "name": "base-sepolia",
     "chain_id": 84532,
@@ -44,16 +44,16 @@
     },
     "incidents": [
       {
-        "ts": "2026-09-07T03:14:08.165Z",
-        "handle": "swiftrender",
-        "kind": "dispute",
-        "detail": "disputed job-001 after delivery was accepted, then short-paid the invoice by 60%"
-      },
-      {
         "ts": "2026-09-07T03:14:08.194Z",
         "handle": "pixelforge",
         "kind": "note",
         "detail": "delivered job-A, job-B, job-C on time"
+      },
+      {
+        "ts": "2026-09-07T03:14:08.165Z",
+        "handle": "swiftrender",
+        "kind": "dispute",
+        "detail": "disputed job-001 after delivery was accepted, then short-paid the invoice by 60%"
       }
     ]
   },
@@ -100,13 +100,7 @@
   "evidence_base_url": "https://raw.githubusercontent.com/egbujor-emmanuel/vouch/main/evidence",
   "evidence_files": [
     "4c7e00194abe1cabdb5e4f8617f9e5c62b9c01f2aff0dd0371998ab9d25bba60.json",
-    "4fafa13dfed2fae8d2bbc9c1931c5c60ae69aeff7f06f5ddc908063fa99364d1.json",
-    "74cfd92e139aec6c8551b3cfb1b3daf5eb0e4cfcad3a0c70e93c924d4d2da824.json",
-    "89df837bb8ed9c084b9571e26097899ef4ae6bec7a225c47b29058cc81b346c2.json",
     "91b43d5ed2f43cdfee1d530919215802f17eafde0c87ad394b04348e65a53248.json",
-    "a9fe9558afb9f0b8d0ae84cdbf0288e6b0d867248b91974a019cd8ec28b5b2f3.json",
-    "da195f7870b16696e6499d23628827d2dcabb4357a8d464926d6d81a92b93bc4.json",
-    "e00ff94396cf8db21a30ee7f4bf9c30d5f5c47184ea5b67a982a9dd7ab64190a.json",
-    "f91ce3bf52581589121012b310f375d80bdf240821125fc434aad9b68bcea275.json"
+    "e00ff94396cf8db21a30ee7f4bf9c30d5f5c47184ea5b67a982a9dd7ab64190a.json"
   ]
 }
