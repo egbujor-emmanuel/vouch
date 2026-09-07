@@ -20,6 +20,7 @@ import sys
 from pathlib import Path
 
 from . import DEFAULT_POLICY
+from .config import apply_public_defaults
 from .memory import VouchMemory
 from .trust import TrustEngine
 from .evidence import verify_json, seal
@@ -708,6 +709,7 @@ def main(argv=None) -> int:
     lk.set_defaults(func=cmd_lookup)
 
     _load_env()
+    apply_public_defaults()  # a clone with no .env still works fully
     _setup_console()
     args = p.parse_args(argv)
     try:

@@ -144,6 +144,9 @@ class Handler(BaseHTTPRequestHandler):
         self._send(200, target.read_bytes(), TYPES.get(target.suffix, "application/octet-stream"))
 
 
+from .config import apply_public_defaults  # noqa: E402
+
+
 def serve(
     port: int = 8765,
     network: str = "base-sepolia",
@@ -151,6 +154,7 @@ def serve(
     host: str = "127.0.0.1",
     read_only: bool = False,
 ) -> int:
+    apply_public_defaults()
     Handler.network = network
     Handler.read_only = read_only
 
