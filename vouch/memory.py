@@ -14,6 +14,7 @@ product does not degrade, it stops existing.
 
 from __future__ import annotations
 
+import json
 import os
 from datetime import datetime, timezone
 from pathlib import Path
@@ -62,6 +63,15 @@ class VouchMemory:
         if not row:
             return dict(DEFAULT_POLICY)
         body = row.get("body") if isinstance(row, dict) else row
+        # The REFERENCE tier serialises bodies to a JSON string on the way in,
+        # unlike entities which round-trip as dicts. Without decoding here the
+        # stored policy is silently ignored and every decision quietly uses the
+        # defaults, which makes the tier decorative rather than load-bearing.
+        if isinstance(body, (str, bytes)):
+            try:
+                body = json.loads(body)
+            except (ValueError, TypeError):
+                return dict(DEFAULT_POLICY)
         return body if isinstance(body, dict) else dict(DEFAULT_POLICY)
 
     # ---- WARM tier: one row per counterparty, Rule 43 enforced ----------

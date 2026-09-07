@@ -213,7 +213,10 @@ class TrustEngine:
             verdict = Verdict(
                 decision=ACCEPT_WITH_ESCROW,
                 handle=handle,
-                reason=f"{disputed} prior dispute(s), escrow required",
+                reason=(
+                    f"{disputed} prior dispute(s), escrow required"
+                    + (f", {net_disputed} from the network" if net_disputed else "")
+                ),
                 quoted_price_usd=standard_price_usd,
                 standard_price_usd=standard_price_usd,
                 escrow_required=True,

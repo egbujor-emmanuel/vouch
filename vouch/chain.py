@@ -277,6 +277,22 @@ class Chain:
 
     # ---- write (needs a funded key and an explicit call) -----------------
 
+    # Mainnet spends real money. This project runs on testnet, so every writing
+    # path refuses Base mainnet unless someone deliberately sets
+    # VOUCH_ALLOW_MAINNET=1. A forgotten --network flag cannot cost anything.
+    MAINNET_ESCAPE_HATCH = "VOUCH_ALLOW_MAINNET"
+
+    def _refuse_mainnet(self, what: str) -> None:
+        if self.cfg["chain_id"] != BASE_MAINNET["chain_id"]:
+            return
+        if os.environ.get(self.MAINNET_ESCAPE_HATCH) == "1":
+            return
+        raise RuntimeError(
+            f"refusing to {what} on Base mainnet: this would spend real funds. "
+            f"Use --network base-sepolia, or set {self.MAINNET_ESCAPE_HATCH}=1 "
+            "if you genuinely intend to pay."
+        )
+
     def register_agent(self, agent_uri: str, timeout: int = 240) -> int:
         """Register an ERC-8004 identity and return the new agentId.
 
@@ -285,6 +301,7 @@ class Chain:
         """
         if self.account is None:
             raise RuntimeError("no private key configured; this client is read-only")
+        self._refuse_mainnet("register an agent")
         fn = self.identity.functions.register(agent_uri)
         tx = fn.build_transaction({
             "from": self.account.address,
@@ -317,6 +334,7 @@ class Chain:
     ) -> str:
         if self.account is None:
             raise RuntimeError("no private key configured; this client is read-only")
+        self._refuse_mainnet("giveFeedback")
         # The registry rejects rating an agent you own ("Self-feedback not
         # allowed"), so issuer and subject must be different owners.
         fh = feedback_hash
