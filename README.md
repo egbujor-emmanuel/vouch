@@ -1,84 +1,37 @@
 # Vouch
 
-**The vouching layer for autonomous agents.**
+**AI agents have started hiring each other. None of them can check who cheated them last week.**
 
-Everyone at this hackathon is building agents that remember. Vouch is the layer
-that lets them **tell each other**.
+There is a reputation standard on Base — [ERC-8004](https://eips.ethereum.org/EIPS/eip-8004) — and
+it is live today. It stores a *number*: a 4.2 out of 5 with no reviews attached, and no way to tell
+an honest score from an invented one.
 
-Built by team **Attrito** for the [Sibyl Labs Hackathon 2026](https://hack.sibyllabs.org/).
-
----
-
-## The problem, in thirty seconds
-
-Agents have started hiring each other. Virtuals ACP is a live marketplace on
-Base where one agent posts a job, another accepts it, money moves, work gets
-delivered — with no human in the loop.
-
-They have no way to check who burned them last time.
-
-There is a standard for this. [ERC-8004](https://eips.ethereum.org/EIPS/eip-8004)
-gives every agent an on-chain identity and a reputation registry, live on Base
-today. Its write function ends with two fields:
+Read the spec and you find why. `giveFeedback` takes two fields for the story behind the score:
 
 ```solidity
 function giveFeedback(
     uint256 agentId, int128 value, uint8 valueDecimals,
     string tag1, string tag2, string endpoint,
-    string feedbackURI,      // <- a link to the story behind the score
-    bytes32 feedbackHash     // <- a keccak-256 commitment to that story
+    string feedbackURI,      // <- a link to what actually happened
+    bytes32 feedbackHash     // <- proof that link was not edited afterwards
 ) external
 ```
 
-The spec marks both **OPTIONAL**. In practice they are empty.
+The spec marks both **OPTIONAL**. They are empty everywhere.
 
-So on-chain agent reputation today is a star rating with no reviews attached.
-It is worse than that, and you can check this yourself in one command:
+Vouch fills them. An agent writes down what a counterparty actually did, seals that account with
+keccak-256, publishes the seal on Base, and — in a later session, with nothing in its head — reads
+other agents' accounts, re-checks their seals, and refuses work it would otherwise have taken.
 
-```bash
-python -m vouch sibyl
-```
-
-That reads the real record of **SIBYL, ERC-8004 agent #20880** — the agent that
-runs Sibyl Labs — from Base mainnet. She has **31 clients and 54 feedback
-entries**. Their values look like this:
-
-| raw `value` | `valueDecimals` | actually means | `tag1` |
-|---|---|---|---|
-| 80 | 2 | 0.80 | `ping` |
-| 100 | 0 | 100 | `ping` |
-| 5 | 0 | 5 | `advisory` |
-| 1 | 0 | 1 | `credible` |
-
-Those ratings are not on the same scale. Some are 0–1, some 0–5, some 0–100.
-Averaging them produces 56.04, which is arithmetic across incompatible units —
-a number that means nothing. **There is no evidence attached to any of them, and
-no common scale to compare them on.**
-
-Vouch fills the socket the standard left open.
+**Live: https://egbujor-emmanuel.github.io/vouch/** — every claim on that page is re-verified in
+your own browser. No server is asked, and none is trusted.
 
 ---
 
-## What Vouch does
+## The gate: memory is load-bearing
 
-An agent running Vouch keeps a structured record of every counterparty it deals
-with. When it rates one, it does three things no one else does:
-
-1. **Serialises the record** into a canonical evidence file, straight out of
-   Sibyl Memory.
-2. **Seals it** with a keccak-256 digest, and publishes the rating on Base with
-   `feedbackURI` and `feedbackHash` actually populated.
-3. **Fixes the scale** at 0–100 with two decimals, so ratings can be compared.
-
-Any other agent can then fetch the file, re-hash it, and prove it was not edited
-after the fact. Reputation stops being a number and becomes **evidence**.
-
----
-
-## Where memory is load-bearing
-
-> The gate: delete the Sibyl Memory layer. If the project still does what it
-> claims, it is a wrapper.
+Delete the memory layer and Vouch does not degrade, it stops existing. There is nothing to score a
+counterparty on, nothing to serialise, nothing to hash, and no basis on which to change a decision.
 
 Run it yourself:
 
@@ -87,143 +40,181 @@ python -m vouch delete-test
 ```
 
 ```
-with memory     REFUSED swiftrender: 1 of 1 jobs disputed (100%)
-without memory  ACCEPTED swiftrender with escrow: no prior history in memory
+with memory      REFUSED swiftrender: 2 of 2 jobs disputed (100%), 1 from the network
+memory deleted   ACCEPTED swiftrender with escrow: no prior history in memory
 ```
 
-Without memory, Vouch cannot tell a counterparty that defrauded it from one it
-has never met. There is no verdict to publish, nothing to serialise, and nothing
-to hash. **The product does not degrade. It stops existing.**
+Same code, same counterparty, same request. The only difference is memory. It is also asserted in
+the test suite, in `tests/test_trust.py::TestTheGate`, including the sharper form: without memory
+every counterparty looks identical, so a fraudster and a saint get the same price.
 
-### The exact critical-path calls
+### Where memory is written and read, on the critical path
 
-| Where | Call | Why it is load-bearing |
-|---|---|---|
-| [`vouch/memory.py`](vouch/memory.py) `upsert_counterparty()` | `set_entity("counterparty", …)` | **WARM.** The single source of truth per agent. `UNIQUE (tenant_id, category, name)` means drift is impossible by construction |
-| [`vouch/memory.py`](vouch/memory.py) `record_incident()` | `write_event(...)` | **COLD.** The append-only testimony that later becomes evidence |
-| [`vouch/memory.py`](vouch/memory.py) `flag()` | `set_entity("flagged", …)` | **FLAGGED.** See below |
-| [`vouch/memory.py`](vouch/memory.py) `get_policy()` | `get_reference()` | **REFERENCE.** The trust rules the engine reads. Edit this record and the agent behaves differently |
-| [`vouch/memory.py`](vouch/memory.py) `set_open_job()` | `set_state()` | **HOT.** The negotiation in flight |
-| [`vouch/trust.py`](vouch/trust.py) `TrustEngine.decide()` | `get_counterparty` / `incidents` / `is_flagged` | **The read that changes the action.** `decide()` takes no argument describing the counterparty's past — it looks that up |
-| [`vouch/publish.py`](vouch/publish.py) `build_and_store()` | reads WARM + COLD | Memory *is* the evidence file. Nothing else is serialised |
+| Tier | What it holds | Written | Read |
+|---|---|---|---|
+| **WARM** entities | one row per counterparty, the single source of truth | [`memory.py:106`](vouch/memory.py#L106) | [`memory.py:111`](vouch/memory.py#L111) |
+| **WARM** flagged | agents never to transact with again | [`memory.py:131`](vouch/memory.py#L131) | [`memory.py:140`](vouch/memory.py#L140) |
+| **COLD** journal | append-only record of every incident and decision | [`memory.py:158`](vouch/memory.py#L158) | [`memory.py:189`](vouch/memory.py#L189) |
+| **REFERENCE** | the trust policy, and cached evidence pointers | [`memory.py:56`](vouch/memory.py#L56) | [`memory.py:60`](vouch/memory.py#L60) |
+| **HOT** state | the negotiation currently in flight | `memory.py` `set_open_job` | `get_open_job` |
+| **ARCHIVE** | retired counterparties, off the active set, still on disk | `retire()` | — |
 
-### The sixth tier
+The decision itself reads memory and nothing else: [`trust.py:76`](vouch/trust.py#L76) loads the
+policy, [`trust.py:103`](vouch/trust.py#L103) checks the flagged tier, [`trust.py:116`](vouch/trust.py#L116)
+loads the counterparty, [`trust.py:167`](vouch/trust.py#L167) pulls the incidents it cites. Every
+verdict is journalled at [`trust.py:246`](vouch/trust.py#L246) — no record, no action.
 
-Sibyl's own agent runs a **six**-tier schema; the shipped product ships five and
-leaves out `FLAGGED` — *"suspected scams, social engineering attempts,
-compromised wallets."* Vouch reinstates it as a WARM category with a hard status,
-checked before any other rule, so a flagged counterparty can never be silently
-re-accepted.
+`decide()` takes **no argument describing the counterparty's past**. It looks that up. That is the
+whole test.
 
----
+### The tier Sibyl's own agent has and the product does not
 
-## The four proofs
-
-Each is independently runnable, so a curious judge can re-run any of them.
-
-```bash
-python -m vouch seed         # session 1: work with an agent, log what happened
-python -m vouch coldstart    # session 2: FRESH process — memory changes the call
-python -m vouch tamper       # a forged evidence file is rejected
-python -m vouch delete-test  # the gate
-python -m vouch sibyl        # live read of SIBYL's real record on Base mainnet
-```
-
-`seed` and `coldstart` are **separate processes**. The second shares nothing with
-the first but the SQLite file.
-
-### Tamper detection
-
-The evidence file is served from a mutable host. The on-chain hash is what makes
-editing it detectable — which is the entire point of `feedbackHash`:
-
-```
-on-chain hash         0xee6121e896fdfdd3d453ef2a7c412f6cae1caf5d8885a4674c83c98a176b8cd5
-honest file verifies  True
-
-forgery               jobs_disputed 1 -> 0, events scrubbed
-forged hash           0xbab7d6ec0361b5e88c19cff93f217294e1f499f655f730fe3a531e3eb9d153ea
-forged verifies       False
-```
-
-No other memory project can show this, because no other project commits a hash.
-
----
-
-## Partner stacks
-
-### Base
-
-ERC-8004 is read and written directly. Registry addresses are CREATE2-deployed
-and identical across mainnets; verified against
-[erc-8004/erc-8004-contracts](https://github.com/erc-8004/erc-8004-contracts)
-and against Sibyl Labs' own published links.
-
-| | Base Mainnet (8453) | Base Sepolia (84532) |
-|---|---|---|
-| IdentityRegistry | `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432` | `0x8004A818BFB912233c491871b3d84c89A494BD9e` |
-| ReputationRegistry | `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63` | `0x8004B663056A597Dffe9eCcC1965A193B7388713` |
-
-Reads run against **mainnet** (free, no wallet). Writes run on **Sepolia**.
-
-### Virtuals Protocol
-
-An ACP job is the event a rating is *about*. See [`acp/`](acp/).
-
----
-
-## Setup
-
-Requires Python 3.10+.
-
-```bash
-git clone <this repo> && cd vouch
-python -m venv .venv && . .venv/Scripts/activate   # Windows
-pip install -r requirements.txt
-python -m vouch seed && python -m vouch coldstart
-```
-
-Nothing touches a network unless you ask it to: `vouch sibyl` reads Base
-mainnet, and `vouch seed --publish` writes to Sepolia. Everything else is local.
+SIBYL runs a six-tier schema; the shipped plugin has five and leaves out **FLAGGED** — *"suspected
+scams, social engineering attempts, compromised wallets."* Vouch reinstates it as a WARM category
+with a hard status, so a flagged agent can never be quietly re-accepted no matter how good the rest
+of its record looks ([`trust.py:103`](vouch/trust.py#L103), and `tests/test_trust.py` asserts a flag
+beats a spotless record).
 
 ---
 
 ## How memory made this possible
 
-We did not pick Sibyl Memory because the hackathon required it. Three of its
-properties are load-bearing for this specific product:
+Reputation is only worth reading if it is *specific*. A score cannot tell you that a counterparty
+disputed a finished job and then short-paid the invoice by 60% — but a journal entry can, and that
+sentence is what makes another agent refuse the work.
 
-**The schema is the evidence format.** Because memory is structured at write
-time into typed tiers, serialising it into a canonical evidence file is a
-projection, not an extraction. A vector store would have to reconstruct a record
-by similarity search, and the result would not be byte-stable — so it could not
-be hashed, so it could not be committed on-chain. **Schema-first memory is what
-makes hash-committed reputation possible at all.**
+Three properties of Sibyl Memory carried real weight:
 
-**Rule 43 is what makes the record trustworthy.** `UNIQUE (tenant_id, category,
-name)` at the schema level means there is exactly one row describing a
-counterparty. An evidence file cannot cite a stale duplicate, because a stale
-duplicate cannot exist.
+**Single source of truth.** `UNIQUE (tenant_id, category, name)` is enforced by the schema, not by
+convention. Two records of the same counterparty cannot exist, so an agent's view of a party cannot
+drift into contradiction — which matters when that view becomes evidence somebody else relies on.
 
-**Append-only journalling is what makes it testimony.** The COLD tier is written
-once and never rewritten, so the incident record backing a rating has the same
-integrity guarantee as the hash committed on-chain.
+**Append-only journal.** Incidents are typed and never rewritten. When a verdict cites *"disputed
+job-001 after delivery was accepted"* it is quoting a record, not regenerating a claim.
+
+**Tenancy.** The second issuer in this repo runs a separate store under its own tenant. It cannot
+read our memory and we cannot read its. All they share is the chain — which is what makes the
+network claim a real one rather than an echo.
+
+Memory also earns its keep in an unglamorous way: evidence pointers live only in event logs, and
+public RPCs cap log queries hard. Caching those pointers in the REFERENCE tier made lookups **five
+times faster**, because the agent remembers where the evidence lives.
 
 ---
 
-## Prior work declaration
+## Quickstart
 
-All code in this repository was written during the build window (Sep 1–10, 2026)
-for this hackathon. No pre-existing codebase was carried in.
+Requires Python 3.10+. No account, no key, no funds.
 
-Third-party dependencies: `sibyl-memory-client` (MIT, Sibyl Labs),
-`web3`/`eth-account` (MIT). The ERC-8004 ABIs are transcribed from the
-[EIP-8004 specification](https://eips.ethereum.org/EIPS/eip-8004); the registry
-contracts are deployed and maintained by the ERC-8004 team, not by us.
+```bash
+git clone https://github.com/egbujor-emmanuel/vouch
+cd vouch
+pip install -r requirements.txt
 
-The observation that SIBYL's on-chain ratings use inconsistent scales is our own,
-made by reading the live registry — see `python -m vouch sibyl`.
+python -m vouch seed        # work with a counterparty; the job goes wrong; seal the account
+python -m vouch coldstart   # a fresh process decides again, and refuses
+python -m vouch delete-test # the gate: same code, memory removed
+python -m vouch tamper      # forge a sealed account and watch it get struck
+python -m vouch network     # what other agents filed, and what survives checking
+python -m vouch ui          # the case file, at http://127.0.0.1:8765
+```
 
-## License
+`sibyl init` is not required: Sibyl Memory's free tier is local and makes no network calls, so the
+whole thing runs offline apart from reading the chain.
+
+## Using it from your own agent
+
+Vouch is a layer, not an app. Any agent already keeping memory can publish to the same register and
+read everyone else's filings. Every command emits JSON, so an agent in any language can shell out.
+
+```bash
+python -m vouch decide  --handle acme --price 25 --agent-id 9178
+python -m vouch record  --handle acme --kind dispute --detail "short-paid by 60%"
+python -m vouch rate    --handle acme --publish --network base-sepolia
+python -m vouch network --agent-id 9178
+```
+
+There is a Python API (`vouch.memory`, `vouch.trust`, `vouch.evidence`) and a Node bridge in
+[`acp/vouch.js`](acp/vouch.js) for Virtuals ACP agents. See [`docs/ADAPTER.md`](docs/ADAPTER.md).
+
+---
+
+## Partner stacks
+
+### Base — deployed and exercised
+
+ERC-8004 on **Base Sepolia**. Registries are CREATE2-deployed, so the addresses match the canonical
+[erc-8004-contracts](https://github.com/erc-8004/erc-8004-contracts) list.
+
+| | |
+|---|---|
+| Vouch issuer identity | ERC-8004 **#9177** |
+| Counterparty of record | ERC-8004 **#9178** |
+| Reputation registry | [`0x8004B663…7388713`](https://sepolia.basescan.org/address/0x8004B663056A597Dffe9eCcC1965A193B7388713) |
+| Our filing | [`0x8b2cb727…13f8d036`](https://sepolia.basescan.org/tx/0x8b2cb727ba08183bff947eeeec39fa7ea8360f4275ca3d2c32017b2613f8d036) |
+| An independent agent's filing | [`0xe81cfcde…cc56b057`](https://sepolia.basescan.org/tx/0xe81cfcde0becc0226c0c1d65f1a75a268ec1cbce1dbcac885281c440cc56b057) |
+| The right of reply | [`0x412ced48…afc7ef98`](https://sepolia.basescan.org/tx/0x412ced48ec361b7887d34151b1678b09f72686551160b6874c466a37afc7ef98) |
+
+Both filings carry a populated `feedbackURI` **and** `feedbackHash`. Fetch either file, hash it, and
+it matches what is on chain.
+
+Testnet by choice: nothing here needs real money, and `Chain._refuse_mainnet` blocks every writing
+path on Base mainnet unless `VOUCH_ALLOW_MAINNET=1` is set deliberately. Mainnet *reads* are free
+and used — `python -m vouch sibyl` reads SIBYL's real record as agent #20880.
+
+### Virtuals — registered agent, live connection
+
+Registered on the ACP service registry and connecting live on Base:
+
+```
+$ node acp/seller.js
+acp   connected on Base
+acp   seller online as 0x40a2be63…, waiting for jobs
+```
+
+The job lifecycle is wired to memory in [`acp/seller.js`](acp/seller.js): `job.created` asks memory
+whether to take it, `job.disputed` records the incident, and the next request from that counterparty
+is answered differently. `--simulate` runs the same handler against a scripted event stream, so the
+integration is testable without credentials.
+
+Authentication is an off-chain signature. No transaction is sent and no funds move.
+
+---
+
+## Verification, and why it happens in your browser
+
+A server telling you an attestation is valid is just another claim. The published page reads the
+register over public RPC, downloads each filed statement, and recomputes keccak-256 **on your
+machine**. Both seals are printed side by side.
+
+`docs/keccak.js` is vendored rather than loaded from a CDN, so the page has no external dependency
+and cannot be changed underneath a viewer. It is checked against three published vectors and
+cross-checked against Python's `eth_utils`.
+
+Bytes are hashed exactly as served, never re-serialised — re-canonicalising in JavaScript would turn
+`25.0` into `25` and wrongly condemn an honest filing.
+
+## Tests
+
+```bash
+python -m pytest tests/ -q      # 67 passing
+```
+
+Covering canonicalisation and seal determinism, five kinds of tampering, the load-bearing gate,
+every decision branch, policy-as-memory, the network layer against a fake chain, and repo-level
+guards — including that every JSON file parses, after a malformed `vercel.json` silently stopped the
+site deploying while GitHub Pages carried on fine.
+
+## Prior work
+
+Written from scratch for the Sibyl Labs Hackathon 2026 by team **Attrito**. No prior codebase.
+
+Dependencies: [`sibyl-memory-client`](https://pypi.org/project/sibyl-memory-client/) 0.8.0 (MIT),
+`web3.py`, `eth-account`, and `@virtuals-protocol/acp-node-v2` for the ACP integration. ERC-8004
+registry addresses come from the erc-8004 team's published deployment list, verified against Sibyl
+Labs' own links. The keccak-256 implementation in `docs/keccak.js` is our own, tested against
+published vectors.
+
+## Licence
 
 MIT. See [LICENSE](LICENSE).

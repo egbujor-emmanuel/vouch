@@ -147,12 +147,19 @@ const testimonyOf = (r) =>
 
 /* ---------- render ---------- */
 
+const pill = (ok, okText = "VERIFIED", badText = "DISCARDED") =>
+  `<span class="st ${ok ? "ok" : "bad"}"><span class="d"></span>${ok ? okText : badText}</span>`;
+const kv = (pairs) =>
+  `<dl class="kv">${pairs.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${v}</dd>`).join("")}</dl>`;
+const txLink = (tx) =>
+  `<a class="mono" target="_blank" rel="noopener" href="${esc(SNAP.network.explorer)}/tx/${esc(tx)}">${short(tx, 16)}</a>`;
+
 async function boot() {
   SNAP = await (await fetch("snapshot.json", { cache: "no-store" })).json();
 
-  $("net").className = "tag on";
-  $("net").textContent = SNAP.network.name + " · chain " + SNAP.network.chain_id;
-  $("issuer").textContent = SNAP.issuer.address ? "filer " + SNAP.issuer.address.slice(0, 10) + "…" : "";
+  $("net").className = "pill live";
+  $("net").innerHTML = `<span class="d"></span>${esc(SNAP.network.name)} · ${SNAP.network.chain_id}`;
+  $("issuer").textContent = SNAP.issuer.address ? SNAP.issuer.address.slice(0, 10) + "…" : "";
   $("store").textContent = "sibyl memory v" + (SNAP.memory.schema_version ?? "?");
   $("s-cp").textContent = SNAP.memory.counterparties.length;
   $("gen").textContent = new Date(SNAP.generated_at).toISOString().slice(0, 16).replace("T", " ") + " UTC";
@@ -161,37 +168,39 @@ async function boot() {
   renderPolicy();
   renderGate();
   await renderNetwork();
-  decide("newcomer"); // the punchline should not need hunting for
+  decide("newcomer");
   renderDispute();
+  inspect(String(SNAP.subject_agent_id));
 }
 
 function renderMemory() {
   const inc = SNAP.memory.incidents || [];
-  $("memory").innerHTML =
-    SNAP.memory.counterparties
-      .map((c) => `<div class="stmt fade">
-        <div class="hd">
-          <span><b style="font-size:19px">${esc(c.handle)}</b>
-            <span class="mono" style="color:var(--faint)"> · agent #${esc(c.agent_id)}</span></span>
-          ${c.flagged ? '<span class="stamp bad">FLAGGED</span>' : ""}
-        </div>
-        ${row("jobs completed", c.jobs_completed)}
-        ${row("jobs disputed", `<b style="color:${c.jobs_disputed ? "var(--stamp-bad)" : "var(--faint)"}">${c.jobs_disputed}</b>`)}
-        ${inc.filter((i) => i.handle === c.handle)
-             .map((i) => `<div class="said">${esc(i.ts || "")} — ${esc(i.detail)}</div>`).join("")}
-      </div>`)
-      .join("") + row("held in", "Sibyl Memory · five tiers · v" + (SNAP.memory.schema_version ?? "?"));
+  const rows = SNAP.memory.counterparties.map((c) => `<tr>
+      <td><b>${esc(c.handle)}</b>${c.flagged ? ' <span class="st bad"><span class="d"></span>FLAGGED</span>' : ""}
+        ${inc.filter((i) => i.handle === c.handle).map((i) => `<div class="quote">${esc(i.detail)}</div>`).join("")}</td>
+      <td class="mono">#${esc(c.agent_id)}</td>
+      <td class="num">${c.jobs_completed}</td>
+      <td class="num"><b style="color:${c.jobs_disputed ? "var(--bad)" : "var(--muted)"}">${c.jobs_disputed}</b></td>
+    </tr>`).join("");
+
+  $("memory").innerHTML = `<div class="tblwrap"><table>
+      <thead><tr><th>Counterparty</th><th>Agent</th><th class="num">Completed</th><th class="num">Disputed</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>
+    <div class="note">One row per counterparty, with duplicates made impossible by the schema —
+      <b>UNIQUE (tenant_id, category, name)</b> is enforced by the database, not by convention.</div>`;
 }
 
 function renderPolicy() {
-  $("policy").innerHTML = Object.entries(SNAP.memory.policy)
+  const rows = Object.entries(SNAP.memory.policy)
     .filter(([k]) => k !== "notes")
-    .map(([k, v]) => row(k.replace(/_/g, " "), `<span class="mono">${esc(v)}</span>`))
+    .map(([k, v]) => `<tr><td>${esc(k.replace(/_/g, " "))}</td><td class="mono">${esc(v)}</td></tr>`)
     .join("");
+  $("policy").innerHTML = `<div class="tblwrap"><table>
+    <thead><tr><th>Rule</th><th>Value</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 async function renderNetwork() {
-  busy("network", "retrieving the register and re-sealing every statement in your browser…");
+  busy("network", "reading the registry and re-hashing every evidence file in your browser…");
   let raw;
   try {
     raw = await fetchFeedbackLogs();
@@ -209,42 +218,52 @@ async function renderNetwork() {
   $("s-ratings").textContent = rated.length;
   $("s-verified").textContent = ver.length;
   $("s-disputes").textContent = disputes;
-  $("hdr-status").textContent = disputes ? "disputes proven" : "open";
+
+  if (!rated.length) {
+    $("network").innerHTML = `<div class="empty">no filings found</div>`;
+    return;
+  }
+
+  const rows = rated.map((r) => `<tr>
+      <td class="mono">${esc(r.client.slice(0, 14))}…</td>
+      <td class="num"><b>${(r.value / 10 ** r.decimals).toFixed(2)}</b><span style="color:var(--muted)">/100</span></td>
+      <td>${pill(r.verified)}<div style="color:var(--muted);font-size:12px;margin-top:5px">${esc(r.status)}</div></td>
+      <td>${r.uri ? `<a class="mono" target="_blank" rel="noopener" href="${esc(r.uri)}">evidence</a>` : '<span style="color:var(--muted)">none</span>'}</td>
+      <td>${txLink(r.tx)}</td>
+    </tr>`).join("");
+
+  const seals = rated.map((r) => `
+    <div class="hashline ${r.verified ? "ok" : "bad"}"><span class="lbl">on chain</span>${esc(r.hash)}</div>
+    ${r.computed ? `<div class="hashline ${r.verified ? "ok" : "bad"}"><span class="lbl">hashed here</span>${esc(r.computed)}</div>` : ""}`).join("");
 
   $("network").innerHTML =
-    row("subject", `<span class="mono">ERC-8004 agent #${SNAP.subject_agent_id}</span>`) +
-    row("register", `<span class="mono">${esc(SNAP.network.reputation)}</span>`) +
-    row("admitted", `<b>${ver.length}</b> of ${rated.length} statements`) +
-    row("sealed with", "keccak-256, recomputed in your browser") +
-    (rated.length
-      ? rated.map((r) => `<div class="stmt fade ${r.verified ? "ok" : "bad"}">
-          <div class="hd">
-            <div>
-              <div class="score">${(r.value / 10 ** r.decimals).toFixed(2)}<small>/100</small></div>
-              <span class="mono" style="color:var(--faint)">deposed by ${esc(r.client.slice(0, 18))}…</span>
-            </div>
-            ${stampFor(r.verified)}
-          </div>
-          ${row("finding", esc(r.status))}
-          <div class="seal ${r.verified ? "ok" : "bad"}"><s>seal recorded on chain</s>${esc(r.hash)}</div>
-          ${r.computed ? `<div class="seal ${r.verified ? "ok" : "bad"}"><s>seal recomputed here</s>${esc(r.computed)}</div>` : ""}
-          ${r.uri ? row("statement", `<a class="mono" target="_blank" rel="noopener" href="${esc(r.uri)}">read the filing ↗</a>`) : ""}
-          ${row("filed in", `<a class="mono" target="_blank" rel="noopener" href="${esc(SNAP.network.explorer)}/tx/${esc(r.tx)}">${short(r.tx, 18)} ↗</a>`)}
-          ${testimonyOf(r).map((t) => `<div class="said">${esc(t)}</div>`).join("")}
-        </div>`).join("")
-      : `<div class="empty">no statements on file</div>`);
+    kv([
+      ["Subject", `<span class="mono">ERC-8004 agent #${SNAP.subject_agent_id}</span>`],
+      ["Reputation registry", `<span class="mono">${esc(SNAP.network.reputation)}</span>`],
+      ["Admitted", `<b>${ver.length}</b> of ${rated.length} filings`],
+    ]) +
+    `<div class="tblwrap" style="margin-top:14px"><table>
+       <thead><tr><th>Issuer</th><th class="num">Score</th><th>Seal check</th><th>Statement</th><th>Transaction</th></tr></thead>
+       <tbody>${rows}</tbody></table></div>` +
+    `<div style="margin-top:16px">${seals}</div>` +
+    (ver.flatMap(testimonyOf).length
+      ? `<div style="margin-top:12px"><div style="font:600 11px/1 var(--sans);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Testimony recovered from verified filings</div>
+         ${ver.flatMap(testimonyOf).map((t) => `<div class="quote">${esc(t)}</div>`).join("")}</div>`
+      : "");
 }
 
-/* ---------- the decision ---------- */
+/* ---------- decision ---------- */
 
-function pane(title, v) {
+function panel(title, v) {
   const bad = v.decision === "REFUSE";
   const warn = v.decision !== "ACCEPT" && !bad;
-  return `<div class="pane"><h3>${esc(title)}</h3>
+  return `<div><h3>${esc(title)}</h3>
     <div class="dec ${bad ? "bad" : warn ? "warn" : "ok"}">${esc(v.decision.replace(/_/g, " "))}</div>
     <div class="why">${esc(v.reason)}</div>
-    ${row("quoted", `$${Number(v.quoted_price_usd).toFixed(2)} of $${Number(v.standard_price_usd).toFixed(2)}`)}
-    ${row("escrow", v.escrow_required ? "required" : "no")}</div>`;
+    ${kv([
+      ["Quoted", `<span class="mono">$${Number(v.quoted_price_usd).toFixed(2)}</span> <span style="color:var(--muted)">of $${Number(v.standard_price_usd).toFixed(2)}</span>`],
+      ["Escrow", v.escrow_required ? '<span class="st warn"><span class="d"></span>REQUIRED</span>' : '<span class="st mut">not required</span>'],
+    ])}</div>`;
 }
 
 function decide(handle) {
@@ -258,31 +277,32 @@ function decide(handle) {
   if (handle === "newcomer" && netDisputes > 0) {
     online = {
       decision: "REFUSE",
-      reason: `never dealt with them, but ${netDisputes} proven dispute(s) deposed by ${ver.length} other agent(s)`,
+      reason: `never dealt with them, but ${netDisputes} proven dispute(s) filed by ${ver.length} other agent(s)`,
       quoted_price_usd: 0,
       standard_price_usd: offline.standard_price_usd,
       escrow_required: false,
     };
   } else {
     online = { ...offline };
-    if (netDisputes) online.reason += `, ${netDisputes} of them from the register`;
+    if (netDisputes) online.reason += `, ${netDisputes} of them from the registry`;
   }
 
   const changed = offline.decision !== online.decision;
-  $("decision").innerHTML = `<div class="split fade">
-      ${pane("its own memory only", offline)}
-      <div class="vs">VS</div>
-      ${pane("memory + the register", online)}
+  $("decision").innerHTML = `<div class="cmp">
+      ${panel("Its own memory only", offline)}
+      ${panel("Memory + the registry", online)}
     </div>
-    <div class="r" style="margin-top:18px"><span class="k">did the register change the outcome</span>
-      <span class="v">${changed ? stampFor(true).replace("VERIFIED", "YES") : '<span class="stamp bad">NO CHANGE</span>'}</span></div>
-    ${ver.flatMap(testimonyOf).map((t) => `<div class="said">${esc(t)}</div>`).join("")}`;
+    <div class="note" style="margin-top:14px">
+      ${changed
+        ? '<span class="st ok"><span class="d"></span>OUTCOME CHANGED</span> &nbsp;Reading other agents\' filings turned this from a job it would have taken into one it refuses.'
+        : '<span class="st mut">no change</span> &nbsp;Its own memory already accounted for this counterparty.'}
+    </div>`;
 }
 
-/* ---------- attempted forgery ---------- */
+/* ---------- tamper ---------- */
 
 async function tamper() {
-  busy("tamper", "retrieving a genuine statement and altering it here…");
+  busy("tamper", "downloading a genuine statement and altering it here…");
   const target = VERIFIED.find((r) => r.verified);
   if (!target) {
     $("tamper").innerHTML = `<div class="empty">no verified statement to work from</div>`;
@@ -301,14 +321,14 @@ async function tamper() {
   const diff = (a, b) =>
     b.split("").map((ch, i) => (a[i] === ch ? esc(ch) : `<span class="ch">${esc(ch)}</span>`)).join("");
 
-  $("tamper").innerHTML = `<div class="fade">
-    ${row("alteration made", `disputes ${before} → 0, testimony removed`)}
-    <div class="seal ok"><s>genuine statement, as filed</s>${esc(honest)}
-      <div style="margin-top:10px">${stampFor(true)}</div></div>
-    <div class="seal bad"><s>the same statement, after tampering</s>${diff(honest, forged)}
-      <div style="margin-top:10px">${stampFor(false)}</div></div>
-    <div class="why" style="margin-top:14px">One number changed and the seal moved. Your browser
-      computed both; neither came from us.</div></div>`;
+  $("tamper").innerHTML =
+    kv([["Alteration", `disputes ${before} → 0, testimony removed`]]) +
+    `<div class="hashline ok"><span class="lbl">genuine file</span>${esc(honest)}</div>
+     <div style="margin:8px 0">${pill(true, "SEAL MATCHES")}</div>
+     <div class="hashline bad"><span class="lbl">after tampering</span>${diff(honest, forged)}</div>
+     <div style="margin:8px 0">${pill(false, "", "SEAL BROKEN")}</div>
+     <div class="explain" style="margin-top:12px">One field changed and the seal moved. Your browser
+       computed both hashes; neither came from us.</div>`;
 }
 
 /* ---------- the gate ---------- */
@@ -320,49 +340,111 @@ function renderGate() {
     reason: "no prior history in memory",
     quoted_price_usd: 25, standard_price_usd: 25, escrow_required: true,
   };
-  $("gate").innerHTML = `<div class="split">
-      ${pane("with memory", withMem)}
-      <div class="vs">VS</div>
-      ${pane("memory deleted", without)}
+  $("gate").innerHTML = `<div class="cmp">
+      ${panel("With memory", withMem)}
+      ${panel("Memory deleted", without)}
     </div>
-    <div class="r" style="margin-top:18px"><span class="k">behaviour differs</span>
-      <span class="v"><span class="stamp ok">LOAD-BEARING</span></span></div>
-    <div class="why" style="margin-top:12px">Reproduce it yourself:
-      <span class="mono">python -m vouch delete-test</span></div>`;
+    <div class="note" style="margin-top:14px">
+      <span class="st ok"><span class="d"></span>LOAD-BEARING</span>
+      &nbsp;Without memory it cannot tell a counterparty that burned it from one it has never met.
+      Reproduce it with <span class="mono">python -m vouch delete-test</span>.</div>`;
 }
 
-window.decide = decide;
-window.tamper = tamper;
-boot().catch((e) => {
-  document.getElementById("network").innerHTML = `<div class="empty">${esc(e.message)}</div>`;
-});
+/* ---------- the right of reply ---------- */
 
-/* ---------- check any agent on the register ---------------------------
- *
- * The page stops being a story here and becomes a tool: put in any
- * ERC-8004 agent id and it is looked up live. Most will come back with
- * ratings that have no statement attached, which is precisely the gap
- * this project exists to fill.
- */
+const RESPONSE_TOPIC0 = "0xb1c6be0b5b8aef6539e2fac0fd131a2faa7b49edf8e505b5eb0ad487d56051d4";
+
+function decodeResponse(log) {
+  const d = log.data.slice(2);
+  const slot = (i) => d.slice(i * 64, (i + 1) * 64);
+  const off = Number(BigInt("0x" + slot(1))) * 2;
+  const len = Number(BigInt("0x" + d.slice(off, off + 64)));
+  return {
+    agentId: Number(BigInt(log.topics[1])),
+    accuser: "0x" + log.topics[2].slice(26),
+    responder: "0x" + log.topics[3].slice(26),
+    feedbackIndex: Number(BigInt("0x" + slot(0))),
+    uri: new TextDecoder().decode(hexToBytes(d.slice(off + 64, off + 64 + len * 2))),
+    hash: "0x" + slot(2),
+    tx: log.transactionHash,
+  };
+}
+
+async function renderDispute() {
+  const box = $("dispute");
+  if (!box) return;
+  box.innerHTML = `<div class="empty blink">searching the registry for a reply…</div>`;
+
+  // Filtered on the agent id with a null topic0, so this does not depend on
+  // knowing every event signature the registry emits.
+  const agent = padTopic(SNAP.subject_agent_id);
+  const latest = Number(BigInt(await rpc("eth_blockNumber", [])));
+  let found = null;
+  for (let hi = latest; hi > latest - 40000 && !found; hi -= 800) {
+    let logs = [];
+    try {
+      logs = await rpc("eth_getLogs", [{
+        address: SNAP.network.reputation,
+        fromBlock: "0x" + Math.max(0, hi - 799).toString(16),
+        toBlock: "0x" + hi.toString(16),
+        topics: [null, agent],
+      }]);
+    } catch { continue; }
+    for (const lg of logs) {
+      if (lg.topics[0].toLowerCase() === RESPONSE_TOPIC0 && lg.topics.length === 4) {
+        found = decodeResponse(lg);
+        break;
+      }
+    }
+  }
+
+  if (!found) {
+    box.innerHTML = `<div class="empty">no reply has been filed against this record</div>`;
+    return;
+  }
+
+  let verified = false, statement = null;
+  try {
+    const bytes = new Uint8Array(await (await fetch(found.uri, { cache: "no-store" })).arrayBuffer());
+    verified = keccak256(bytes).toLowerCase() === found.hash.toLowerCase();
+    if (verified) statement = JSON.parse(new TextDecoder().decode(bytes));
+  } catch { /* left unverified */ }
+
+  const accusation = VERIFIED.find(
+    (r) => r.client.toLowerCase() === found.accuser.toLowerCase() && r.index === found.feedbackIndex
+  );
+
+  box.innerHTML = `<div class="cmp">
+      <div><h3>The accusation</h3>
+        <div class="dec bad">DISPUTED</div>
+        <div class="why">${esc(accusation ? (testimonyOf(accusation)[0] || accusation.status) : "filed against this agent")}</div>
+        ${kv([["Filed by", `<span class="mono">${esc(found.accuser.slice(0, 16))}…</span>`]])}</div>
+      <div><h3>The reply</h3>
+        <div class="dec ${verified ? "ok" : "warn"}">ANSWERED</div>
+        <div class="why">${esc(statement ? statement.statement : "reply filed but not verifiable")}</div>
+        ${kv([["Filed by", `<span class="mono">${esc(found.responder.slice(0, 16))}…</span>`]])}</div>
+    </div>
+    <div style="margin-top:14px">
+      <div class="hashline ${verified ? "ok" : "bad"}"><span class="lbl">reply seal</span>${esc(found.hash)}</div>
+      ${kv([["Answering filing", `#${found.feedbackIndex}`], ["Transaction", txLink(found.tx)]])}
+    </div>
+    <div class="note" style="margin-top:12px">${pill(verified, "REPLY VERIFIED", "REPLY UNVERIFIED")}
+      &nbsp;Both sides now stand on the registry, each sealed independently.</div>`;
+}
+
+/* ---------- look up any agent ---------- */
 
 const selector = (sig) => keccak256(new TextEncoder().encode(sig)).slice(0, 10);
 const abiUint = (n) => BigInt(n).toString(16).padStart(64, "0");
+const ethCall = (to, data) => rpc("eth_call", [{ to, data }, "latest"]);
 
-async function ethCall(to, data) {
-  return rpc("eth_call", [{ to, data }, "latest"]);
-}
-
-/** Decode an ABI address[] return value. */
 function decodeAddressArray(hex) {
   const d = hex.slice(2);
   if (d.length < 128) return [];
   const off = Number(BigInt("0x" + d.slice(0, 64))) * 2;
   const len = Number(BigInt("0x" + d.slice(off, off + 64)));
   const out = [];
-  for (let i = 0; i < len; i++) {
-    const w = d.slice(off + 64 + i * 64, off + 128 + i * 64);
-    out.push("0x" + w.slice(24));
-  }
+  for (let i = 0; i < len; i++) out.push("0x" + d.slice(off + 64 + i * 64, off + 128 + i * 64).slice(24));
   return out;
 }
 
@@ -370,39 +452,34 @@ async function inspect(agentId) {
   const box = $("inspect");
   const say = (m) => (box.innerHTML = `<div class="empty blink">${esc(m)}</div>`);
   if (!agentId || !/^\d+$/.test(String(agentId))) {
-    say("enter a numeric agent id");
+    box.innerHTML = `<div class="empty">enter a numeric agent id</div>`;
     return;
   }
 
-  say(`looking up agent #${agentId} on ${SNAP.network.name}…`);
-
-  // Who has rated this agent. A storage read, so no block-range limits.
+  say(`looking up agent #${agentId}…`);
   let clients = [];
   try {
     clients = decodeAddressArray(
       await ethCall(SNAP.network.reputation, selector("getClients(uint256)") + abiUint(agentId))
     );
   } catch (e) {
-    box.innerHTML = `<div class="empty">could not reach the register: ${esc(e.message)}</div>`;
+    box.innerHTML = `<div class="empty">could not reach the registry: ${esc(e.message)}</div>`;
     return;
   }
 
   if (!clients.length) {
-    box.innerHTML =
-      row("agent", `<span class="mono">#${esc(agentId)}</span>`) +
-      row("raters", "0") +
-      `<div class="why" style="margin-top:12px">No one has rated this agent yet. An empty
-       record is at least honest — unlike a score with nothing behind it.</div>`;
+    box.innerHTML = kv([
+      ["Agent", `<span class="mono">#${esc(agentId)} on ${esc(SNAP.network.name)}</span>`],
+      ["Agents that rated it", "0"],
+    ]) + `<div class="note">Nobody has rated this agent. An empty record is at least honest —
+        unlike a score with nothing behind it.</div>`;
     return;
   }
 
-  say(`agent #${agentId}: ${clients.length} rater(s) found — searching for their statements…`);
-
-  // Statements live in the logs. Walk a bounded window newest-first so an
-  // arbitrary agent still answers in seconds rather than minutes.
+  say(`agent #${agentId}: ${clients.length} rater(s) — locating their filings…`);
   const topic0 = keccak256(new TextEncoder().encode(NEW_FEEDBACK_SIG));
   const latest = Number(BigInt(await rpc("eth_blockNumber", [])));
-  const CHUNK = 800, WINDOW = 60000;
+  const WINDOW = 60000, CHUNK = 800;
   const found = [];
   for (let hi = latest; hi > latest - WINDOW && found.length < clients.length; hi -= CHUNK) {
     const lo = Math.max(0, hi - CHUNK + 1);
@@ -423,128 +500,38 @@ async function inspect(agentId) {
   const withEvidence = checked.filter((r) => r.uri);
   const verified = checked.filter((r) => r.verified);
 
+  const rows = checked.map((r) => `<tr>
+      <td class="mono">${esc(r.client.slice(0, 14))}…</td>
+      <td class="num"><b>${(r.value / 10 ** r.decimals).toFixed(2)}</b><span style="color:var(--muted)">/100</span></td>
+      <td>${r.uri ? '<span class="st ok"><span class="d"></span>ATTACHED</span>' : '<span class="st bad"><span class="d"></span>NONE</span>'}</td>
+      <td>${pill(r.verified)}<div style="color:var(--muted);font-size:12px;margin-top:5px">${esc(r.status)}</div></td>
+    </tr>`).join("");
+
   box.innerHTML =
-    row("agent", `<span class="mono">#${esc(agentId)} on ${esc(SNAP.network.name)}</span>`) +
-    row("agents that rated it", clients.length) +
-    row("statements located", found.length) +
-    row("with evidence attached",
-        `<b style="color:${withEvidence.length ? "var(--stamp-ok)" : "var(--stamp-bad)"}">${withEvidence.length}</b>`) +
-    row("seals verified here",
-        `<b style="color:${verified.length ? "var(--stamp-ok)" : "var(--faint)"}">${verified.length}</b>`) +
+    kv([
+      ["Agent", `<span class="mono">#${esc(agentId)} on ${esc(SNAP.network.name)}</span>`],
+      ["Agents that rated it", clients.length],
+      ["Filings located", found.length],
+      ["With evidence attached", `<b style="color:${withEvidence.length ? "var(--ok)" : "var(--bad)"}">${withEvidence.length}</b> of ${found.length}`],
+      ["Seals verified here", `<b style="color:${verified.length ? "var(--ok)" : "var(--muted)"}">${verified.length}</b>`],
+    ]) +
     (found.length
-      ? checked.map((r) => `<div class="stmt ${r.verified ? "ok" : "bad"}">
-          <div class="hd">
-            <div><div class="score">${(r.value / 10 ** r.decimals).toFixed(2)}<small>/100</small></div>
-              <span class="mono" style="color:var(--faint)">by ${esc(r.client.slice(0, 18))}…</span></div>
-            ${stampFor(r.verified)}
-          </div>
-          ${row("finding", esc(r.status))}
-        </div>`).join("")
-      : `<div class="why" style="margin-top:12px">Raters exist but no statement was found in the
-         last ${WINDOW.toLocaleString()} blocks.</div>`) +
+      ? `<div class="tblwrap" style="margin-top:14px"><table>
+          <thead><tr><th>Issuer</th><th class="num">Score</th><th>Evidence</th><th>Seal check</th></tr></thead>
+          <tbody>${rows}</tbody></table></div>`
+      : `<div class="note">Raters exist, but no filing was found in the last
+          ${WINDOW.toLocaleString()} blocks.</div>`) +
     (found.length && !withEvidence.length
-      ? `<div class="why" style="margin-top:14px"><b>This is the gap.</b> The score exists, but
-         there is nothing behind it: no account of what happened, and nothing to check. That is
-         what ERC-8004 leaves empty and what Vouch fills.</div>`
+      ? `<div class="note"><b>This is the gap.</b> The score exists, but there is nothing behind it:
+         no account of what happened and nothing to check. That is what ERC-8004 leaves empty and
+         what Vouch fills.</div>`
       : "");
 }
 
+window.decide = decide;
+window.tamper = tamper;
 window.inspect = inspect;
-
-/* ---------- the right of reply ---------------------------------------
- *
- * ERC-8004 ships appendResponse so an agent that has been rated can answer.
- * Nobody uses it, so a record carries only the accuser's side. This is the
- * other half: the accused files a rebuttal, sealed the same way, and both
- * sides stand on the register.
- *
- * The topic hash below was read off a real log rather than derived from a
- * guessed event signature — several plausible spellings did not match.
- */
-const RESPONSE_TOPIC0 = "0xb1c6be0b5b8aef6539e2fac0fd131a2faa7b49edf8e505b5eb0ad487d56051d4";
-
-function decodeResponse(log) {
-  const d = log.data.slice(2);
-  const slot = (i) => d.slice(i * 64, (i + 1) * 64);
-  const off = Number(BigInt("0x" + slot(1))) * 2;
-  const len = Number(BigInt("0x" + d.slice(off, off + 64)));
-  return {
-    agentId: Number(BigInt(log.topics[1])),
-    accuser: "0x" + log.topics[2].slice(26),
-    responder: "0x" + log.topics[3].slice(26),
-    feedbackIndex: Number(BigInt("0x" + slot(0))),
-    uri: new TextDecoder().decode(hexToBytes(d.slice(off + 64, off + 64 + len * 2))),
-    hash: "0x" + slot(2),
-    tx: log.transactionHash,
-    block: parseInt(log.blockNumber, 16),
-  };
-}
-
-async function renderDispute() {
-  const box = $("dispute");
-  if (!box) return;
-  box.innerHTML = `<div class="empty blink">searching the register for a rebuttal…</div>`;
-
-  // Filter on the agent id with a null topic0, so this does not depend on
-  // knowing every event signature the registry emits.
-  const agent = padTopic(SNAP.subject_agent_id);
-  const latest = Number(BigInt(await rpc("eth_blockNumber", [])));
-  let found = null;
-  for (let hi = latest; hi > latest - 40000 && !found; hi -= 800) {
-    const lo = Math.max(0, hi - 799);
-    let logs = [];
-    try {
-      logs = await rpc("eth_getLogs", [{
-        address: SNAP.network.reputation,
-        fromBlock: "0x" + lo.toString(16), toBlock: "0x" + hi.toString(16),
-        topics: [null, agent],
-      }]);
-    } catch { continue; }
-    for (const lg of logs) {
-      if (lg.topics[0].toLowerCase() === RESPONSE_TOPIC0 && lg.topics.length === 4) {
-        found = decodeResponse(lg);
-        break;
-      }
-    }
-  }
-
-  if (!found) {
-    box.innerHTML = `<div class="empty">no rebuttal has been filed against this record</div>`;
-    return;
-  }
-
-  // Check the rebuttal exactly as we check an accusation. A reply that cannot
-  // be verified deserves no more weight than a statement that cannot.
-  let verified = false, statement = null;
-  try {
-    const bytes = new Uint8Array(await (await fetch(found.uri, { cache: "no-store" })).arrayBuffer());
-    verified = keccak256(bytes).toLowerCase() === found.hash.toLowerCase();
-    if (verified) statement = JSON.parse(new TextDecoder().decode(bytes));
-  } catch { /* left unverified */ }
-
-  const accusation = VERIFIED.find(
-    (r) => r.client.toLowerCase() === found.accuser.toLowerCase() && r.index === found.feedbackIndex
-  );
-
-  box.innerHTML = `<div class="split fade">
-      <div class="pane"><h3>the accusation</h3>
-        <div class="dec bad">DISPUTED</div>
-        <div class="why">${esc(accusation ? (testimonyOf(accusation)[0] || accusation.status) : "filed against this agent")}</div>
-        ${row("deposed by", `<span class="mono">${esc(found.accuser.slice(0, 18))}…</span>`)}
-      </div>
-      <div class="vs">VS</div>
-      <div class="pane"><h3>the reply</h3>
-        <div class="dec ${verified ? "ok" : "warn"}">ANSWERED</div>
-        <div class="why">${esc(statement ? statement.statement : "rebuttal filed but not verifiable")}</div>
-        ${row("filed by", `<span class="mono">${esc(found.responder.slice(0, 18))}…</span>`)}
-      </div>
-    </div>
-    ${row("answering statement", `#${found.feedbackIndex}`)}
-    <div class="seal ${verified ? "ok" : "bad"}"><s>reply seal, recomputed here</s>${esc(found.hash)}
-      <div style="margin-top:10px">${stampFor(verified)}</div></div>
-    ${row("filed in", `<a class="mono" target="_blank" rel="noopener" href="${esc(SNAP.network.explorer)}/tx/${esc(found.tx)}">${short(found.tx, 18)} ↗</a>`)}
-    <div class="why" style="margin-top:14px">Both sides now stand on the register, each sealed.
-      A record with only the accuser on it is a rumour; this is what makes it evidence.</div>`;
-}
-
 window.renderDispute = renderDispute;
+boot().catch((e) => {
+  document.getElementById("network").innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+});
