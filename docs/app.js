@@ -545,23 +545,47 @@ async function inspect(agentId) {
     return;
   }
 
-  say(`agent #${agentId}: ${clients.length} rater(s) — locating their filings…`);
-  const topic0 = keccak256(new TextEncoder().encode(NEW_FEEDBACK_SIG));
-  const latest = Number(BigInt(await rpc("eth_blockNumber", [])));
-  const WINDOW = 60000, CHUNK = 800;
+  // Known agents resolve from the committed hints, which is one narrow query
+  // each rather than a blind walk back through tens of thousands of blocks.
+  // The earlier version scanned 60,000 blocks in 800-block steps — seventy-odd
+  // sequential requests — and left this panel visibly stuck for a minute on the
+  // very agent the rest of the page had already resolved.
   const found = [];
-  for (let hi = latest; hi > latest - WINDOW && found.length < clients.length; hi -= CHUNK) {
-    const lo = Math.max(0, hi - CHUNK + 1);
-    say(`agent #${agentId}: scanning blocks ${lo.toLocaleString()}–${hi.toLocaleString()}…`);
-    let logs = [];
-    try {
-      logs = await rpc("eth_getLogs", [{
-        address: SNAP.network.reputation,
-        fromBlock: "0x" + lo.toString(16), toBlock: "0x" + hi.toString(16),
-        topics: [topic0, padTopic(agentId)],
-      }]);
-    } catch { continue; }
-    for (const lg of logs) found.push(decodeFeedback(lg));
+  const topic0 = keccak256(new TextEncoder().encode(NEW_FEEDBACK_SIG));
+  const hinted = String(agentId) === String(SNAP.subject_agent_id) ? SNAP.log_hints || [] : [];
+
+  if (hinted.length) {
+    say(`agent #${agentId}: ${clients.length} rater(s) — reading their filings…`);
+    for (const h of hinted) {
+      try {
+        const logs = await rpc("eth_getLogs", [{
+          address: SNAP.network.reputation,
+          fromBlock: "0x" + Math.max(0, h.block - 2).toString(16),
+          toBlock: "0x" + (h.block + 2).toString(16),
+          topics: [topic0, padTopic(agentId)],
+        }]);
+        for (const lg of logs) found.push(decodeFeedback(lg));
+      } catch { /* a missing hint simply finds nothing */ }
+    }
+  }
+
+  // An agent we hold no hint for still gets a search, but a bounded one: recent
+  // history only, and the panel says so rather than implying it looked everywhere.
+  if (!found.length) {
+    const latest = Number(BigInt(await rpc("eth_blockNumber", [])));
+    const WINDOW = 12000, CHUNK = 800;
+    for (let hi = latest; hi > latest - WINDOW && found.length < clients.length; hi -= CHUNK) {
+      const lo = Math.max(0, hi - CHUNK + 1);
+      say(`agent #${agentId}: searching recent blocks ${lo.toLocaleString()}–${hi.toLocaleString()}…`);
+      try {
+        const logs = await rpc("eth_getLogs", [{
+          address: SNAP.network.reputation,
+          fromBlock: "0x" + lo.toString(16), toBlock: "0x" + hi.toString(16),
+          topics: [topic0, padTopic(agentId)],
+        }]);
+        for (const lg of logs) found.push(decodeFeedback(lg));
+      } catch { continue; }
+    }
   }
 
   const checked = [];
@@ -589,7 +613,7 @@ async function inspect(agentId) {
           <thead><tr><th>Issuer</th><th class="num">Score</th><th>Evidence</th><th>Seal check</th></tr></thead>
           <tbody>${rows}</tbody></table></div>`
       : `<div class="note">Raters exist, but no filing was found in the last
-          ${WINDOW.toLocaleString()} blocks.</div>`) +
+          the recent blocks searched. Older filings need their block noted in filings.json.</div>`) +
     (found.length && !withEvidence.length
       ? `<div class="note"><b>This is the gap.</b> The score exists, but there is nothing behind it:
          no account of what happened and nothing to check. That is what ERC-8004 leaves empty and
