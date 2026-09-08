@@ -615,8 +615,16 @@ async function inspect(agentId) {
       ? `<div class="tblwrap" style="margin-top:14px"><table>
           <thead><tr><th>Issuer</th><th class="num">Score</th><th>Evidence</th><th>Seal check</th></tr></thead>
           <tbody>${rows}</tbody></table></div>`
-      : `<div class="note">Raters exist, but no filing was found in the last
-          the recent blocks searched. Older filings need their block noted in filings.json.</div>`) +
+      : `<div class="note">Raters exist, but no filing turned up in the recent blocks searched.
+          An older one needs its block noted in <span class="mono">filings.json</span>.</div>`) +
+    // The point of the whole project is that a verified filing carries an
+    // account, not just a number — so show the account here, where a judge
+    // types an id, and not only in the panel further down.
+    (verified.flatMap(testimonyOf).length
+      ? `<div style="margin-top:14px"><div style="font:700 10.5px/1 var(--sans);letter-spacing:.09em;
+           text-transform:uppercase;color:var(--muted);margin-bottom:8px">Testimony recovered from the verified filings</div>
+         ${verified.flatMap(testimonyOf).map((x) => `<div class="quote">${esc(x)}</div>`).join("")}</div>`
+      : "") +
     (found.length && !withEvidence.length
       ? `<div class="note"><b>This is the gap.</b> The score exists, but there is nothing behind it:
          no account of what happened and nothing to check. That is what ERC-8004 leaves empty and

@@ -107,7 +107,9 @@ tbody tr:hover{background:var(--s2)}
 
 .kv{display:grid;grid-template-columns:230px 1fr;gap:11px 20px;font-size:13px}
 .kv dt{color:var(--muted);font-size:12px;letter-spacing:.03em;text-transform:uppercase}
-.kv dd{word-break:break-all}
+/* anywhere, not break-all: break-all splits prose mid-word ("bu / y"),
+   while anywhere still breaks a long hash or address that cannot fit. */
+.kv dd{overflow-wrap:anywhere}
 @media(max-width:640px){.kv{grid-template-columns:1fr;gap:2px 0}.kv dd{margin-bottom:12px}}
 
 .hashline{display:flex;gap:14px;font-family:var(--mono);font-size:12px;
