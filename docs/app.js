@@ -257,8 +257,8 @@ function paintNetwork(rated, source) {
     </tr>`).join("");
 
   const seals = rated.map((r) => `
-    <div class="hashline ${r.verified ? "ok" : "bad"}"><span class="lbl">on chain</span>${esc(r.hash)}</div>
-    ${r.computed ? `<div class="hashline ${r.verified ? "ok" : "bad"}"><span class="lbl">hashed here</span>${esc(r.computed)}</div>` : ""}`).join("");
+    <div class="hashline ${r.verified ? "ok" : "bad"}"><span class="lbl">on chain</span><span class="hv">${esc(r.hash)}</span></div>
+    ${r.computed ? `<div class="hashline ${r.verified ? "ok" : "bad"}"><span class="lbl">hashed here</span><span class="hv">${esc(r.computed)}</span></div>` : ""}`).join("");
 
   $("network").innerHTML =
     kv([
@@ -392,9 +392,9 @@ async function tamper() {
 
   $("tamper").innerHTML =
     kv([["Alteration", `disputes ${before} → 0, testimony removed`]]) +
-    `<div class="hashline ok"><span class="lbl">genuine file</span>${esc(honest)}</div>
+    `<div class="hashline ok"><span class="lbl">genuine file</span><span class="hv">${esc(honest)}</span></div>
      <div style="margin:8px 0">${pill(true, "SEAL MATCHES")}</div>
-     <div class="hashline bad"><span class="lbl">after tampering</span>${diff(honest, forged)}</div>
+     <div class="hashline bad"><span class="lbl">after tampering</span><span class="hv">${diff(honest, forged)}</span></div>
      <div style="margin:8px 0">${pill(false, "", "SEAL BROKEN")}</div>
      <div class="explain" style="margin-top:12px">One field changed and the seal moved. Your browser
        computed both hashes; neither came from us.</div>`;
@@ -497,7 +497,7 @@ async function renderDispute() {
         ${kv([["Filed by", `<span class="mono">${esc(found.responder.slice(0, 16))}…</span>`]])}</div>
     </div>
     <div style="margin-top:14px">
-      <div class="hashline ${verified ? "ok" : "bad"}"><span class="lbl">reply seal</span>${esc(found.hash)}</div>
+      <div class="hashline ${verified ? "ok" : "bad"}"><span class="lbl">reply seal</span><span class="hv">${esc(found.hash)}</span></div>
       ${kv([["Answering filing", `#${found.feedbackIndex}`], ["Transaction", txLink(found.tx)]])}
     </div>
     <div class="note" style="margin-top:12px">${pill(verified, "REPLY VERIFIED", "REPLY UNVERIFIED")}

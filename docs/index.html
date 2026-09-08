@@ -118,6 +118,11 @@ tbody tr:hover{background:var(--s2)}
 .hashline .lbl{color:var(--muted);font:700 10px/1.6 var(--sans);letter-spacing:.09em;
   text-transform:uppercase;min-width:124px;flex:none}
 .ch{color:var(--bad);font-weight:700;background:var(--bad-bg)}
+/* The value must be one flex item. The tamper diff wraps each changed
+   character in its own span, and without this wrapper every character became
+   a flex item and inherited the 14px gap, shattering the hash into a column
+   of loose glyphs. */
+.hv{flex:1;min-width:0;word-break:break-all}
 
 .cmp{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);
   border:1px solid var(--line);border-radius:12px;overflow:hidden}
