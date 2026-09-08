@@ -54,6 +54,17 @@ def load_env(path=".env") -> None:
             os.environ.setdefault(k.strip(), v.strip())
 
 
+def _response_hints(network: str, agent_id: int) -> list:
+    """Block numbers for any appendResponse filed against this agent."""
+    import json as _json
+
+    try:
+        idx = _json.loads(Path("filings.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    return idx.get(network, {}).get("responses", {}).get(str(agent_id), [])
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--network", default="base-sepolia")
@@ -160,6 +171,10 @@ def main() -> int:
         # and recomputes every seal, then replaces this with its own result. If
         # the two ever disagree the browser wins, visibly.
         "filings": filings,
+        # Where the right of reply lives. Without this the page walked 40,000
+        # blocks looking for it — fifty sequential requests, and the single
+        # biggest reason the page felt slow.
+        "response_hints": _response_hints(args.network, subject),
         "log_hints": hints,
         "evidence_base_url": os.environ.get("VOUCH_EVIDENCE_BASE_URL", ""),
         "evidence_files": EvidenceStore().list(),

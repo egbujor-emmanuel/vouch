@@ -447,28 +447,31 @@ async function renderDispute() {
   // Filtered on the agent id with a null topic0, so this does not depend on
   // knowing every event signature the registry emits.
   const agent = padTopic(SNAP.subject_agent_id);
-  const latest = Number(BigInt(await rpc("eth_blockNumber", [])));
   let found = null;
-  for (let hi = latest; hi > latest - 40000 && !found; hi -= 800) {
-    let logs = [];
+
+  // The reply's block is recorded, so this is one query rather than a walk back
+  // through forty thousand blocks. That walk was fifty sequential requests and
+  // the single largest reason this page felt slow to load.
+  for (const h of SNAP.response_hints || []) {
     try {
-      logs = await rpc("eth_getLogs", [{
+      const logs = await rpc("eth_getLogs", [{
         address: SNAP.network.reputation,
-        fromBlock: "0x" + Math.max(0, hi - 799).toString(16),
-        toBlock: "0x" + hi.toString(16),
+        fromBlock: "0x" + Math.max(0, h.block - 2).toString(16),
+        toBlock: "0x" + (h.block + 2).toString(16),
         topics: [null, agent],
       }]);
-    } catch { continue; }
-    for (const lg of logs) {
-      if (lg.topics[0].toLowerCase() === RESPONSE_TOPIC0 && lg.topics.length === 4) {
-        found = decodeResponse(lg);
-        break;
+      for (const lg of logs) {
+        if (lg.topics[0].toLowerCase() === RESPONSE_TOPIC0 && lg.topics.length === 4) {
+          found = decodeResponse(lg);
+          break;
+        }
       }
-    }
+    } catch { /* a stale hint finds nothing, which is the safe failure */ }
+    if (found) break;
   }
 
   if (!found) {
-    box.innerHTML = `<div class="empty">no reply has been filed against this record</div>`;
+    box.innerHTML = `<div class="empty">no reply found in the blocks searched</div>`;
     return;
   }
 
