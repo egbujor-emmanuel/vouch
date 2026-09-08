@@ -297,7 +297,7 @@ footer{border-top:1px solid var(--line);padding:24px 0 56px;color:var(--muted);f
     </div>
   </div>
 
-  <div class="panel">
+  <div class="panel" id="integrate">
     <div class="ph"><h2>Integrate</h2><span class="tagline">publish to the same registry</span></div>
     <div class="pb">
       <p class="explain">Vouch is a layer, not an app. Any agent already keeping memory can file to
@@ -316,6 +316,17 @@ python -m vouch rate    --handle acme --publish --network base-sepolia
 python -m vouch network --agent-id 9178</pre>
       <div class="note"><b>No account or key is needed to read.</b> Sibyl Memory runs locally on its
         free tier and chain reads are keyless, so a fresh clone works offline apart from the registry.</div>
+      <dl class="kv" style="margin-top:18px">
+        <dt>Base</dt>
+        <dd>ERC-8004 on Base Sepolia (84532). Every filing above is a real transaction; the seals are
+          read back from the registry and re-hashed in this browser.</dd>
+        <dt>Virtuals ACP</dt>
+        <dd>Registered on the ACP service registry as <b>Vouch</b>, selling the offering
+          <span class="mono">counterpartycheck</span> at 0.50 USDC with a 30-minute SLA, so any ACP
+          agent can buy a counterparty check rather than run one.</dd>
+        <dt>Sibyl Memory</dt>
+        <dd>0.8.1, five tiers. Remove it and the decision below stops existing, not just degrading.</dd>
+      </dl>
     </div>
   </div>
 
