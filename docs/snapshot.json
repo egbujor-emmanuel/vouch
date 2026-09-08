@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-07T19:44:59+00:00",
+  "generated_at": "2026-09-08T15:45:12+00:00",
   "network": {
     "name": "base-sepolia",
     "chain_id": 84532,
@@ -49,13 +49,13 @@
     },
     "incidents": [
       {
-        "ts": "2026-09-07T14:27:50.608Z",
+        "ts": "2026-09-08T15:37:46.651Z",
         "handle": "swiftrender",
         "kind": "dispute",
         "detail": "disputed job-001 after delivery was accepted, then short-paid the invoice by 60%"
       },
       {
-        "ts": "2026-09-07T14:27:50.629Z",
+        "ts": "2026-09-08T15:37:46.681Z",
         "handle": "pixelforge",
         "kind": "note",
         "detail": "delivered job-A, job-B, job-C on time"
@@ -82,12 +82,43 @@
       "standard_price_usd": 25.0,
       "escrow_required": false,
       "citations": [
-        "2026-09-07T14:27:50.608Z [dispute] disputed job-001 after delivery was accepted, then short-paid the invoice by 60%"
+        "2026-09-08T15:37:46.651Z [dispute] disputed job-001 after delivery was accepted, then short-paid the invoice by 60%"
       ],
       "evidence_checked": false,
       "evidence_verified": null
     }
   },
+  "filings": [
+    {
+      "issuer": "0xEf67DD86cC1E9FE35De02e2c0A8C47E9a3f7ed83",
+      "score": 0.0,
+      "verified": true,
+      "status": "verified",
+      "uri": "https://raw.githubusercontent.com/egbujor-emmanuel/vouch/main/evidence/e00ff94396cf8db21a30ee7f4bf9c30d5f5c47184ea5b67a982a9dd7ab64190a.json",
+      "hash": "0xe00ff94396cf8db21a30ee7f4bf9c30d5f5c47184ea5b67a982a9dd7ab64190a",
+      "tx": "8b2cb727ba08183bff947eeeec39fa7ea8360f4275ca3d2c32017b2613f8d036",
+      "index": 1,
+      "testimony": [
+        "2026-09-06T14:41:07.798Z [0xEf67DD86\u2026] disputed job-001 after delivery was accepted, then short-paid the invoice by 60%"
+      ],
+      "disputes": 1
+    },
+    {
+      "issuer": "0x39Aef27afc033749b97DA6918f0418F3d6C99Ab2",
+      "score": 50.0,
+      "verified": true,
+      "status": "verified",
+      "uri": "https://raw.githubusercontent.com/egbujor-emmanuel/vouch/main/evidence/4c7e00194abe1cabdb5e4f8617f9e5c62b9c01f2aff0dd0371998ab9d25bba60.json",
+      "hash": "0x4c7e00194abe1cabdb5e4f8617f9e5c62b9c01f2aff0dd0371998ab9d25bba60",
+      "tx": "e81cfcde0becc0226c0c1d65f1a75a268ec1cbce1dbcac885281c440cc56b057",
+      "index": 1,
+      "testimony": [
+        "2026-09-07T01:16:56.441Z [0x39Aef27a\u2026] abandoned job mid-delivery after the escrow released, never returned the funds",
+        "2026-09-07T01:18:19.726Z [0x39Aef27a\u2026] abandoned job mid-delivery after the escrow released, never returned the funds"
+      ],
+      "disputes": 1
+    }
+  ],
   "log_hints": [
     {
       "client": "0xEf67DD86cC1E9FE35De02e2c0A8C47E9a3f7ed83",

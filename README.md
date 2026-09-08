@@ -230,7 +230,7 @@ site deploying while GitHub Pages carried on fine.
 
 Written from scratch for the Sibyl Labs Hackathon 2026 by team **Attrito**. No prior codebase.
 
-Dependencies: [`sibyl-memory-client`](https://pypi.org/project/sibyl-memory-client/) 0.8.0 (MIT),
+Dependencies: [`sibyl-memory-client`](https://pypi.org/project/sibyl-memory-client/) 0.8.1 (MIT),
 `web3.py`, `eth-account`, and `@virtuals-protocol/acp-node-v2` for the ACP integration. ERC-8004
 registry addresses come from the erc-8004 team's published deployment list, verified against Sibyl
 Labs' own links. The keccak-256 implementation in `docs/keccak.js` is our own, tested against

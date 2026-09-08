@@ -86,6 +86,25 @@ def main() -> int:
     # Both verdicts, computed here so the page can show the comparison even
     # before its own live lookup finishes. The page recomputes verification
     # itself; these are for first paint only.
+    # Verify once here so the snapshot can carry the answer.
+    from vouch.network import lookup
+
+    filings = []
+    view = lookup(chain, subject, memory=mem)
+    for r in view.ratings:
+        filings.append({
+            "issuer": r.issuer,
+            "score": r.score,
+            "verified": r.verified,
+            "status": r.status,
+            "uri": r.uri,
+            "hash": r.digest,
+            "tx": r.tx,
+            "index": r.index,
+            "testimony": r.testimony,
+            "disputes": r.disputes,
+        })
+
     engine_offline = TrustEngine(mem)
     stranger_offline = engine_offline.decide("newcomer", standard_price_usd=25.0)
     known_offline = engine_offline.decide("swiftrender", standard_price_usd=25.0)
@@ -135,6 +154,12 @@ def main() -> int:
             "newcomer": stranger_offline.to_dict(),
             "swiftrender": known_offline.to_dict(),
         },
+        # Pre-verified filings, so the page paints the moment it loads instead
+        # of sitting on a spinner for half a minute while public RPCs answer.
+        # These are a first impression only: the browser re-fetches every file
+        # and recomputes every seal, then replaces this with its own result. If
+        # the two ever disagree the browser wins, visibly.
+        "filings": filings,
         "log_hints": hints,
         "evidence_base_url": os.environ.get("VOUCH_EVIDENCE_BASE_URL", ""),
         "evidence_files": EvidenceStore().list(),

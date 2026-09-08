@@ -21,7 +21,7 @@ classifiers = [
 # web3 is only needed to touch the chain. The memory layer, the decision engine
 # and the evidence format work without it, so an agent that only wants local
 # reasoning does not pull a chain client in.
-dependencies = ["sibyl-memory-client==0.8.0"]
+dependencies = ["sibyl-memory-client==0.8.1"]
 
 [project.optional-dependencies]
 chain = ["web3>=8.0.0", "eth-account>=0.13.0"]

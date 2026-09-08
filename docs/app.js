@@ -161,10 +161,11 @@ async function verifyRating(f) {
 }
 
 const disputesOf = (r) => (r.verified && r.evidence ? Number(r.evidence.summary?.jobs_disputed || 0) : 0);
-const testimonyOf = (r) =>
-  r.verified && r.evidence
-    ? (r.evidence.events || []).flatMap((e) => (e.acted || []).map((a) => `${e.ts || ""} — ${a}`))
-    : [];
+const testimonyOf = (r) => {
+  if (!r.verified) return [];
+  if (r._testimony?.length) return r._testimony;      // snapshot-shaped
+  return (r.evidence?.events || []).flatMap((e) => (e.acted || []).map((a) => `${e.ts || ""} — ${a}`));
+};
 
 /* ---------- render ---------- */
 
@@ -222,20 +223,15 @@ function renderPolicy() {
     <thead><tr><th>Rule</th><th>Value</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
-async function renderNetwork() {
-  busy("network", "reading the registry and re-hashing every evidence file in your browser…");
-  let raw;
-  try {
-    raw = await fetchFeedbackLogs();
-  } catch (e) {
-    $("network").innerHTML = `<div class="empty">${esc(e.message)}</div>`;
-    return;
-  }
-
-  const rated = [];
-  for (const f of raw) rated.push(await verifyRating(f));
-  VERIFIED = rated;
-
+/** Paint the filings table.
+ *
+ * `source` says who checked: "snapshot" means the seals were verified when the
+ * page was published, "browser" means this machine just re-fetched every file
+ * and recomputed every hash. The distinction is shown rather than smoothed
+ * over, because a page arguing that evidence should be checkable cannot quietly
+ * ask to be taken at its word.
+ */
+function paintNetwork(rated, source) {
   const ver = rated.filter((r) => r.verified);
   const disputes = ver.reduce((n, r) => n + disputesOf(r), 0);
   $("s-ratings").textContent = rated.length;
@@ -247,12 +243,17 @@ async function renderNetwork() {
     return;
   }
 
+  const checkedBy =
+    source === "browser"
+      ? '<span class="st ok"><span class="d"></span>VERIFIED IN YOUR BROWSER</span>'
+      : '<span class="st mut">from snapshot · re-checking here now…</span>';
+
   const rows = rated.map((r) => `<tr>
       <td class="mono">${esc(r.client.slice(0, 14))}…</td>
       <td class="num"><b>${(r.value / 10 ** r.decimals).toFixed(2)}</b><span style="color:var(--muted)">/100</span></td>
       <td>${pill(r.verified)}<div style="color:var(--muted);font-size:12px;margin-top:5px">${esc(r.status)}</div></td>
       <td>${r.uri ? `<a class="mono" target="_blank" rel="noopener" href="${esc(r.uri)}">evidence</a>` : '<span style="color:var(--muted)">none</span>'}</td>
-      <td>${txLink(r.tx)}</td>
+      <td>${r.tx ? txLink(r.tx) : "—"}</td>
     </tr>`).join("");
 
   const seals = rated.map((r) => `
@@ -264,15 +265,60 @@ async function renderNetwork() {
       ["Subject", `<span class="mono">ERC-8004 agent #${SNAP.subject_agent_id}</span>`],
       ["Reputation registry", `<span class="mono">${esc(SNAP.network.reputation)}</span>`],
       ["Admitted", `<b>${ver.length}</b> of ${rated.length} filings`],
+      ["Checked by", checkedBy],
     ]) +
     `<div class="tblwrap" style="margin-top:14px"><table>
        <thead><tr><th>Issuer</th><th class="num">Score</th><th>Seal check</th><th>Statement</th><th>Transaction</th></tr></thead>
        <tbody>${rows}</tbody></table></div>` +
     `<div style="margin-top:16px">${seals}</div>` +
     (ver.flatMap(testimonyOf).length
-      ? `<div style="margin-top:12px"><div style="font:600 11px/1 var(--sans);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Testimony recovered from verified filings</div>
+      ? `<div style="margin-top:12px"><div style="font:700 10.5px/1 var(--sans);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Testimony recovered from verified filings</div>
          ${ver.flatMap(testimonyOf).map((t) => `<div class="quote">${esc(t)}</div>`).join("")}</div>`
       : "");
+}
+
+/** Snapshot filings reshaped to look like a freshly verified one. */
+function fromSnapshot() {
+  return (SNAP.filings || []).map((f) => ({
+    client: f.issuer,
+    index: f.index,
+    value: Math.round(f.score * 100),
+    decimals: 2,
+    uri: f.uri,
+    hash: f.hash,
+    tx: f.tx,
+    verified: f.verified,
+    status: f.status,
+    computed: null,
+    evidence: f.verified ? { summary: { jobs_disputed: f.disputes }, events: [] } : null,
+    _testimony: f.testimony || [],
+  }))
+}
+
+async function renderNetwork() {
+  // Paint the known-good answer first so nobody waits on a spinner.
+  const pre = fromSnapshot();
+  if (pre.length) {
+    VERIFIED = pre;
+    paintNetwork(pre, "snapshot");
+  } else {
+    busy("network", "reading the registry…");
+  }
+
+  // Then do the real thing: fetch every file and recompute every seal here.
+  let raw;
+  try {
+    raw = await fetchFeedbackLogs();
+  } catch (e) {
+    if (!pre.length) $("network").innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+    return;
+  }
+
+  const rated = [];
+  for (const f of raw) rated.push(await verifyRating(f));
+  if (!rated.length) return; // keep the snapshot rather than blanking the table
+  VERIFIED = rated;
+  paintNetwork(rated, "browser");
 }
 
 /* ---------- decision ---------- */
