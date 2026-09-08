@@ -185,10 +185,12 @@ async function boot() {
   $("s-cp").textContent = SNAP.memory.counterparties.length;
   $("gen").textContent = new Date(SNAP.generated_at).toISOString().slice(0, 16).replace("T", " ") + " UTC";
 
+  renderSwitch();   // instant: answers from the snapshot, no chain call
   renderMemory();
   renderPolicy();
   renderGate();
   await renderNetwork();
+  renderSwitch();   // again, now the verified filings are known
   decide("newcomer");
   renderDispute();
   inspect(String(SNAP.subject_agent_id));
@@ -556,3 +558,76 @@ window.renderDispute = renderDispute;
 boot().catch((e) => {
   document.getElementById("network").innerHTML = `<div class="empty">${esc(e.message)}</div>`;
 });
+
+/* ---------- the memory switch --------------------------------------------
+ *
+ * The hackathon's test is "delete the memory layer and see if it still works".
+ * Reading that as a paragraph proves nothing; flipping it does. This answers
+ * instantly from the snapshot rather than waiting on the chain, because a
+ * control that takes thirty seconds to respond is not a control.
+ */
+
+let MEMORY_ON = true;
+
+function verdictWithMemory() {
+  // Own memory plus whatever the registry turned out to hold. VERIFIED is
+  // populated by the network pass; before it lands we still answer, just
+  // without the corroborating filings.
+  const base = SNAP.offline_verdicts.newcomer;
+  const ver = VERIFIED.filter((r) => r.verified);
+  const net = ver.reduce((n, r) => n + disputesOf(r), 0);
+
+  if (net > 0) {
+    return {
+      decision: "REFUSE",
+      reason: `Never dealt with them — but ${net} proven dispute(s), filed by ${ver.length} independent agent(s) and verified in this browser.`,
+      cites: ver.flatMap(testimonyOf),
+    };
+  }
+  return {
+    decision: base.decision,
+    reason: base.reason + ". No filings verified yet — the registry read is still running.",
+    cites: [],
+  };
+}
+
+function verdictWithoutMemory() {
+  return {
+    decision: "ACCEPT_WITH_ESCROW",
+    reason:
+      "Nothing is known about anyone. With no memory there is no history to consult, nothing to hash, and nothing to publish — so every counterparty is quoted the same price, a fraudster and a saint alike.",
+    cites: [],
+  };
+}
+
+function renderSwitch() {
+  const sw = $("memswitch");
+  const box = $("bigverdict");
+  if (!sw || !box) return;
+
+  sw.classList.toggle("off", !MEMORY_ON);
+  sw.setAttribute("aria-checked", String(MEMORY_ON));
+  $("memlabel").textContent = MEMORY_ON ? "MEMORY ON" : "MEMORY OFF";
+
+  const v = MEMORY_ON ? verdictWithMemory() : verdictWithoutMemory();
+  const bad = v.decision === "REFUSE";
+  const warn = v.decision !== "ACCEPT" && !bad;
+
+  box.innerHTML = `
+    <div class="big ${bad ? "bad" : warn ? "warn" : "ok"}">${esc(v.decision.replace(/_/g, " "))}</div>
+    <div class="bigwhy">${esc(v.reason)}</div>
+    ${v.cites.length ? `<div style="margin-top:14px">${v.cites.map((c) => `<div class="quote">${esc(c)}</div>`).join("")}</div>` : ""}
+    <div class="note" style="margin-top:16px">
+      ${MEMORY_ON
+        ? 'Memory is doing the work. Switch it off and watch the same agent, on the same request, lose the ability to tell anyone apart.'
+        : '<b>This is the gate.</b> The product did not get worse — it stopped existing. Nothing to score, nothing to seal, nothing to publish. Reproduce it with <span class="mono">python -m vouch delete-test</span>.'}
+    </div>`;
+}
+
+function toggleMemory() {
+  MEMORY_ON = !MEMORY_ON;
+  renderSwitch();
+}
+
+window.toggleMemory = toggleMemory;
+window.renderSwitch = renderSwitch;

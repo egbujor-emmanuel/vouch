@@ -143,6 +143,37 @@ a:hover{text-decoration:underline}
 pre{font-family:var(--mono);font-size:12.5px;line-height:1.8;background:var(--bg);
   border:1px solid var(--line2);border-radius:8px;padding:16px 18px;overflow-x:auto;color:var(--ink2)}
 pre b{color:var(--brand)}
+
+/* ---- the memory switch: the hackathon's own test, as a control ---- */
+.tryit{border:1px solid var(--brand);border-radius:12px;background:var(--s1);overflow:hidden}
+.tryit .bar{display:flex;align-items:center;gap:16px;padding:16px 20px;
+  border-bottom:1px solid var(--line);flex-wrap:wrap;background:var(--brand-dim)}
+.tryit .bar h2{font:700 15px/1.3 var(--sans);letter-spacing:-.02em;color:var(--ink)}
+.switch{display:inline-flex;align-items:center;gap:12px;cursor:pointer;user-select:none;
+  margin-left:auto;font:700 12px/1 var(--sans);letter-spacing:.06em}
+.track{width:58px;height:30px;border-radius:99px;background:var(--ok);position:relative;
+  transition:background .18s;border:1px solid var(--ok);flex:none}
+.knob{position:absolute;top:3px;left:31px;width:22px;height:22px;border-radius:99px;
+  background:#000;transition:left .18s}
+.switch.off .track{background:var(--s3);border-color:var(--line2)}
+.switch.off .knob{left:3px;background:var(--muted)}
+.switch .lbl{color:var(--ok);min-width:104px;text-align:right}
+.switch.off .lbl{color:var(--bad)}
+.verdictbox{padding:22px 20px}
+.big{font:800 clamp(30px,5vw,46px)/1.05 var(--sans);letter-spacing:-.04em;margin-bottom:8px}
+.big.ok{color:var(--ok)} .big.bad{color:var(--bad)} .big.warn{color:var(--warn)}
+.bigwhy{color:var(--ink2);font-size:15px;max-width:70ch}
+.askrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px;
+  font:12.5px/1 var(--mono);color:var(--muted)}
+.askrow b{color:var(--ink);font-family:var(--sans);font-size:13px}
+.steps{counter-reset:n;display:grid;gap:0;margin:0}
+.steps li{display:grid;grid-template-columns:30px 1fr;gap:14px;padding:13px 0;
+  border-bottom:1px dashed var(--line);align-items:start;list-style:none}
+.steps li:last-child{border-bottom:0}
+.steps .n{width:22px;height:22px;border-radius:99px;background:var(--brand);color:#0b1300;
+  display:grid;place-items:center;font:700 11px/1 var(--sans)}
+.steps p{color:var(--ink2);font-size:13.5px}
+.steps b{color:var(--ink)}
 footer{border-top:1px solid var(--line);padding:24px 0 56px;color:var(--muted);font-size:12.5px}
 </style></head><body>
 
@@ -177,6 +208,27 @@ footer{border-top:1px solid var(--line);padding:24px 0 56px;color:var(--muted);f
 </div>
 
 <div class="wrap"><main>
+
+  <div class="panel tryit">
+    <div class="bar">
+      <h2>Try it — turn the memory off</h2>
+      <span class="tagline">this is the hackathon's own test, as a switch</span>
+      <span class="switch" id="memswitch" role="switch" aria-checked="true" tabindex="0"
+            onclick="toggleMemory()" onkeydown="if(event.key===' '||event.key==='Enter'){event.preventDefault();toggleMemory()}">
+        <span class="lbl" id="memlabel">MEMORY ON</span>
+        <span class="track"><span class="knob"></span></span>
+      </span>
+    </div>
+    <div class="verdictbox">
+      <div class="askrow">
+        <b>newcomer</b> requests a job · 25.00 USDC · an agent this one has never dealt with
+      </div>
+      <div id="bigverdict">
+        <div class="big warn">—</div>
+        <div class="bigwhy">flip the switch above</div>
+      </div>
+    </div>
+  </div>
 
   <div class="panel">
     <div class="ph"><h2>Agent lookup</h2><span class="tagline">live query against the registry</span></div>
