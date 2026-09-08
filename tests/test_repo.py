@@ -85,7 +85,7 @@ class TestFilingsStayFindable:
         assert index.is_file(), "filings.json is what keeps old filings findable"
         data = _json.loads(index.read_text(encoding="utf-8"))
 
-        entries = data.get("base-sepolia", {}).get("9178", [])
+        entries = data.get("base-sepolia", {}).get("filings", {}).get("9178", [])
         assert len(entries) >= 2, "both published filings must be indexed"
         for e in entries:
             assert e["block"] > 0, "a hint without a block cannot locate anything"
@@ -98,7 +98,7 @@ class TestFilingsStayFindable:
 
         data = _json.loads((ROOT / "filings.json").read_text(encoding="utf-8"))
         for network in data.values():
-            for entries in network.values():
+            for entries in network.get("filings", {}).values():
                 for e in entries:
                     name = e["uri"].rsplit("/", 1)[-1]
                     assert (ROOT / "evidence" / name).is_file(), f"missing {name}"

@@ -38,7 +38,7 @@ def _load() -> dict[str, Any]:
 def hints(network: str, agent_id: int) -> list[dict[str, Any]]:
     """Known block numbers for an agent's filings on a network."""
     data = _load()
-    return list(data.get(network, {}).get(str(agent_id), []))
+    return list(data.get(network, {}).get("filings", {}).get(str(agent_id), []))
 
 
 def remember(network: str, agent_id: int, entries: list[dict[str, Any]]) -> int:
@@ -49,7 +49,7 @@ def remember(network: str, agent_id: int, entries: list[dict[str, Any]]) -> int:
     either here would create a second copy that could disagree with them.
     """
     data = _load()
-    net = data.setdefault(network, {})
+    net = data.setdefault(network, {}).setdefault("filings", {})
     known = {(e["client"].lower(), e["index"]): e for e in net.get(str(agent_id), [])}
 
     added = 0
