@@ -69,8 +69,11 @@ export function SonarGrid({
   const refreshRef = React.useRef<() => void>(() => {})
 
   // The render loop reads props through this ref so knob changes apply live without restarting it.
+  // Synced in an effect rather than assigned during render: mutating a ref while
+  // rendering is a side effect, which React may discard or repeat under
+  // concurrent rendering and StrictMode. The sync effect below runs before the
+  // repaint, so the loop never reads a stale value that a viewer could see.
   const opts = React.useRef({ spacing, dotRadius, baseOpacity, pingEvery, speed, ringWidth, amplitude, interactive, maxRings, seedPing, pingArea })
-  opts.current = { spacing, dotRadius, baseOpacity, pingEvery, speed, ringWidth, amplitude, interactive, maxRings, seedPing, pingArea }
 
   const setHost = React.useCallback(
     (node: HTMLDivElement | null) => {
@@ -263,10 +266,11 @@ export function SonarGrid({
     }
   }, [])
 
-  // Prop changes while the loop is asleep still repaint immediately.
+  // Push prop changes to the loop, then repaint even if it is asleep.
   React.useEffect(() => {
+    opts.current = { spacing, dotRadius, baseOpacity, pingEvery, speed, ringWidth, amplitude, interactive, maxRings, seedPing, pingArea }
     refreshRef.current()
-  }, [spacing, dotRadius, baseOpacity, color, pingEvery, speed, ringWidth, amplitude, interactive, maxRings, pingArea])
+  }, [spacing, dotRadius, baseOpacity, color, pingEvery, speed, ringWidth, amplitude, interactive, maxRings, seedPing, pingArea])
 
   return (
     <div
