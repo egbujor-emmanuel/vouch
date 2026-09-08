@@ -11,3 +11,4 @@ __pycache__/
 node_modules/
 evidence_out/
 .acp-token
+web/*.mjs
