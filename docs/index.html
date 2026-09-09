@@ -201,8 +201,8 @@ footer{border-top:1px solid var(--line);padding:24px 0 56px;color:var(--muted);f
       marks both optional, and they are <b>empty almost everywhere</b>: a rating with nothing to
       check. Vouch fills them, and this page re-verifies every seal <b>in your own browser</b>.</p>
     <div class="search">
-      <input type="text" id="agentid" value="9178" placeholder="ERC-8004 agent id" inputmode="numeric">
-      <button class="pri" onclick="inspect(document.getElementById('agentid').value.trim())">Look up agent</button>
+      <input type="text" id="agentid" value="9178" placeholder="ERC-8004 agent id" inputmode="numeric" onkeydown="if(event.key==='Enter'){event.preventDefault();inspect(this.value.trim(),true)}">
+      <button class="pri" onclick="inspect(document.getElementById('agentid').value.trim(), true)">Look up agent</button>
       <span class="hint">try <b>9178</b>, which has evidence — then try any other id</span>
     </div>
     <div class="stats">

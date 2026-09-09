@@ -520,11 +520,42 @@ function decodeAddressArray(hex) {
   return out;
 }
 
-async function inspect(agentId) {
+// Two lookups can be in flight at once: the one the page runs on load, and one
+// a visitor starts before that has finished. Whatever the order they land in,
+// the visitor's answer is the one that must be on screen — so a boot query only
+// writes while nobody has asked for anything, and between visitor lookups the
+// newest wins.
+let INSPECT_SEQ = 0;
+let USER_SEQ = 0;
+
+async function inspect(agentId, reveal = false) {
   const box = $("inspect");
-  const say = (m) => (box.innerHTML = `<div class="empty blink">${esc(m)}</div>`);
+  const seq = ++INSPECT_SEQ;
+  const asked = reveal;
+  if (asked) USER_SEQ++;
+  const mine = () => seq === INSPECT_SEQ && (asked || USER_SEQ === 0);
+  const say = (m) => {
+    if (mine()) box.innerHTML = `<div class="empty blink">${esc(m)}</div>`;
+  };
+  // The panel this writes into is below the fold, so a click on Look up looked
+  // like nothing had happened. Bring the answer to the reader when the reader
+  // asked for it — never on the boot query, which would scroll the page out
+  // from under someone who has just arrived.
+  //
+  // The offset is computed rather than left to scroll-margin: the header is
+  // sticky, and scrollIntoView lands the panel under it.
+  const bring = () => {
+    if (!reveal) return;
+    const panel = box.closest(".panel");
+    const bar = document.querySelector(".top");
+    if (!panel) return;
+    const y = panel.getBoundingClientRect().top + window.scrollY
+      - ((bar?.getBoundingClientRect().height || 0) + 16);
+    window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+  };
+  bring();
   if (!agentId || !/^\d+$/.test(String(agentId))) {
-    box.innerHTML = `<div class="empty">enter a numeric agent id</div>`;
+    if (mine()) box.innerHTML = `<div class="empty">enter a numeric agent id</div>`;
     return;
   }
 
@@ -535,11 +566,13 @@ async function inspect(agentId) {
       await ethCall(SNAP.network.reputation, selector("getClients(uint256)") + abiUint(agentId))
     );
   } catch (e) {
-    box.innerHTML = `<div class="empty">could not reach the registry: ${esc(e.message)}</div>`;
+    if (mine()) box.innerHTML = `<div class="empty">could not reach the registry: ${esc(e.message)}</div>`;
     return;
   }
+  if (!mine()) return;
 
   if (!clients.length) {
+    if (!mine()) return;
     box.innerHTML = kv([
       ["Agent", `<span class="mono">#${esc(agentId)} on ${esc(SNAP.network.name)}</span>`],
       ["Agents that rated it", "0"],
@@ -603,6 +636,7 @@ async function inspect(agentId) {
       <td>${pill(r.verified)}<div style="color:var(--muted);font-size:12px;margin-top:5px">${esc(r.status)}</div></td>
     </tr>`).join("");
 
+  if (!mine()) return;
   box.innerHTML =
     kv([
       ["Agent", `<span class="mono">#${esc(agentId)} on ${esc(SNAP.network.name)}</span>`],
@@ -630,6 +664,11 @@ async function inspect(agentId) {
          no account of what happened and nothing to check. That is what ERC-8004 leaves empty and
          what Vouch fills.</div>`
       : "");
+
+  // The panels above are still resolving while this runs, and they grow as they
+  // do, which walks this one back down the page. Anchor it again now that the
+  // answer is on screen.
+  bring();
 }
 
 window.decide = decide;
