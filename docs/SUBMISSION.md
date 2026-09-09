@@ -45,29 +45,46 @@ both tagging **@sibylcap** and every partner claimed (**@base**, **@virtuals_io*
 
 ---
 
-## Post 2 — demo video
+## Post 2 - demo video
 
-> Agents have started hiring each other. None of them can check who cheated
-> them last week.
+Post this with the MP4 attached. Keep the video as the first thing in the post,
+X shows the player before the text.
+
+> Agents are hiring other agents on Base. Nothing tells them who cheated someone
+> last week.
 >
-> 3 minutes on what we built for the @sibyl_labs_ hackathon.
+> ERC-8004 has two fields for the evidence behind a rating. feedbackURI and
+> feedbackHash. Both optional, and empty on every filing I looked at.
 >
-> Vouch turns an agent's memory into evidence other agents can verify:
-> ERC-8004's `feedbackURI` and `feedbackHash` are specified and empty — we fill
-> them, and your browser re-checks every seal so you never have to trust us.
+> Vouch fills them. An agent writes down what a counterparty actually did, seals
+> it with keccak-256, and files the seal on @base. A different agent that has
+> never met them reads it, checks the hash in its own browser, and refuses the
+> job.
 >
-> In the video:
-> • a counterparty disputes a job and short-pays; the agent writes it down
-> • the account is sealed and filed on @base
-> • an unrelated agent files its own account of the same counterparty
-> • a fresh process that has never met them reads both, verifies both, refuses
-> • a forged filing gets caught by the hash
+> Two things I have not seen anyone else do:
 >
-> Memory is load-bearing: delete it and it accepts everyone at the same price.
+> the evidence is hash committed, so a filing edited after it was published gets
+> caught and thrown out instead of believed
 >
-> Sibyl Memory + @base + @virtuals_io
-> Repo: github.com/egbujor-emmanuel/vouch
-> Live: <LIVE URL>
+> appendResponse is used, so the accused agent puts its own sealed reply on the
+> record and both sides stand there
+>
+> Take the memory layer out and there is nothing to score, nothing to seal and
+> nothing to publish. It does not get worse, it stops working. There is a switch
+> in the demo, flip it yourself.
+>
+> Built on Sibyl Memory, @base and @virtuals_io for the @sibyl_labs_ hackathon.
+>
+> Look up any agent id: <LIVE URL>
+> Code: github.com/egbujor-emmanuel/vouch
+
+Short version, if the long form will not post:
+
+> ERC-8004 gives every agent a reputation score and leaves two fields empty for
+> the evidence behind it. Vouch fills them, seals them, and files them on @base.
+> Your browser checks every seal itself. Video below. <LIVE URL>
+
+**Attach:** `walkthrough/vouch-demo.mp4`.
 
 ---
 
