@@ -1,369 +1,663 @@
 [
  {
   "i": 0,
-  "tag": "the setup",
-  "line": "Agents are hiring other agents on Base. There's a standard for reputation called ERC 8004, and it stores a score for each agent.",
+  "tag": "who has this problem",
+  "line": "If you are running an agent that takes jobs from other agents, on Base or on an ACP marketplace, you have a problem. Your agent is dealing with strangers, and it has no way to check any of them.",
   "file": "00.mp3",
-  "dur": 8592.0,
+  "dur": 10632.0,
   "words": [
    {
-    "text": "Agents",
-    "at": 84.1
+    "text": "If",
+    "at": 96.2
+   },
+   {
+    "text": "you",
+    "at": 216.3
    },
    {
     "text": "are",
-    "at": 432.7
+    "at": 312.5
    },
    {
-    "text": "hiring",
-    "at": 528.8
+    "text": "running",
+    "at": 456.8
    },
    {
-    "text": "other",
-    "at": 1009.6
-   },
-   {
-    "text": "agents",
-    "at": 1214.0
-   },
-   {
-    "text": "on",
-    "at": 1526.5
-   },
-   {
-    "text": "Base",
-    "at": 1658.7
-   },
-   {
-    "text": "There's",
-    "at": 2524.0
-   },
-   {
-    "text": "a",
-    "at": 2668.2
-   },
-   {
-    "text": "standard",
-    "at": 2728.4
-   },
-   {
-    "text": "for",
-    "at": 3185.1
-   },
-   {
-    "text": "reputation",
-    "at": 3329.3
-   },
-   {
-    "text": "called",
-    "at": 3978.4
-   },
-   {
-    "text": "ERC",
-    "at": 4399.0
-   },
-   {
-    "text": "8004",
-    "at": 5096.2
-   },
-   {
-    "text": "and",
-    "at": 6514.4
-   },
-   {
-    "text": "it",
-    "at": 6574.5
-   },
-   {
-    "text": "stores",
-    "at": 6658.7
-   },
-   {
-    "text": "a",
-    "at": 7007.2
-   },
-   {
-    "text": "score",
-    "at": 7079.3
-   },
-   {
-    "text": "for",
-    "at": 7464.0
-   },
-   {
-    "text": "each",
-    "at": 7668.2
+    "text": "an",
+    "at": 709.1
    },
    {
     "text": "agent",
-    "at": 7884.6
+    "at": 817.3
+   },
+   {
+    "text": "that",
+    "at": 1165.9
+   },
+   {
+    "text": "takes",
+    "at": 1298.1
+   },
+   {
+    "text": "jobs",
+    "at": 1598.5
+   },
+   {
+    "text": "from",
+    "at": 1959.1
+   },
+   {
+    "text": "other",
+    "at": 2115.4
+   },
+   {
+    "text": "agents",
+    "at": 2391.8
+   },
+   {
+    "text": "on",
+    "at": 3076.9
+   },
+   {
+    "text": "Base",
+    "at": 3221.2
+   },
+   {
+    "text": "or",
+    "at": 3786.0
+   },
+   {
+    "text": "on",
+    "at": 3930.3
+   },
+   {
+    "text": "an",
+    "at": 4026.5
+   },
+   {
+    "text": "ACP",
+    "at": 4146.6
+   },
+   {
+    "text": "marketplace",
+    "at": 4603.4
+   },
+   {
+    "text": "you",
+    "at": 5613.0
+   },
+   {
+    "text": "have",
+    "at": 5685.1
+   },
+   {
+    "text": "a",
+    "at": 5781.2
+   },
+   {
+    "text": "problem",
+    "at": 5841.3
+   },
+   {
+    "text": "Your",
+    "at": 6634.6
+   },
+   {
+    "text": "agent",
+    "at": 6790.9
+   },
+   {
+    "text": "is",
+    "at": 7271.6
+   },
+   {
+    "text": "dealing",
+    "at": 7415.9
+   },
+   {
+    "text": "with",
+    "at": 7728.4
+   },
+   {
+    "text": "strangers",
+    "at": 7860.6
+   },
+   {
+    "text": "and",
+    "at": 8822.1
+   },
+   {
+    "text": "it",
+    "at": 8930.3
+   },
+   {
+    "text": "has",
+    "at": 9002.4
+   },
+   {
+    "text": "no",
+    "at": 9182.7
+   },
+   {
+    "text": "way",
+    "at": 9363.0
+   },
+   {
+    "text": "to",
+    "at": 9471.2
+   },
+   {
+    "text": "check",
+    "at": 9543.2
+   },
+   {
+    "text": "any",
+    "at": 9807.7
+   },
+   {
+    "text": "of",
+    "at": 10012.0
+   },
+   {
+    "text": "them",
+    "at": 10096.2
    }
   ]
  },
  {
   "i": 1,
-  "tag": "the gap",
-  "line": "There are two fields for the evidence behind that score. A link, and a hash. I went looking, and they're empty everywhere. So you get a number with nothing you can actually check.",
+  "tag": "the standard",
+  "line": "There is a standard for this. ERC 8004. It gives every agent a reputation score, stored on chain.",
   "file": "01.mp3",
-  "dur": 9312.0,
+  "dur": 6720.0,
   "words": [
    {
     "text": "There",
     "at": 108.2
    },
    {
-    "text": "are",
+    "text": "is",
     "at": 204.3
    },
    {
-    "text": "two",
-    "at": 312.5
+    "text": "a",
+    "at": 300.5
    },
    {
-    "text": "fields",
-    "at": 576.9
+    "text": "standard",
+    "at": 360.6
    },
    {
     "text": "for",
-    "at": 997.6
+    "at": 781.2
    },
    {
-    "text": "the",
-    "at": 1117.8
+    "text": "this",
+    "at": 937.5
    },
    {
-    "text": "evidence",
-    "at": 1226.0
+    "text": "ERC",
+    "at": 1670.7
    },
    {
-    "text": "behind",
-    "at": 1634.6
+    "text": "8004",
+    "at": 1875.0
    },
    {
-    "text": "that",
-    "at": 1995.2
+    "text": "It",
+    "at": 3197.1
+   },
+   {
+    "text": "gives",
+    "at": 3305.3
+   },
+   {
+    "text": "every",
+    "at": 3714.0
+   },
+   {
+    "text": "agent",
+    "at": 4038.5
+   },
+   {
+    "text": "a",
+    "at": 4363.0
+   },
+   {
+    "text": "reputation",
+    "at": 4399.0
    },
    {
     "text": "score",
-    "at": 2175.5
+    "at": 5024.0
    },
    {
-    "text": "A",
-    "at": 2968.8
+    "text": "stored",
+    "at": 5589.0
    },
    {
-    "text": "link",
-    "at": 3028.8
+    "text": "on",
+    "at": 5865.4
    },
    {
-    "text": "and",
-    "at": 3425.5
-   },
-   {
-    "text": "a",
-    "at": 3485.6
-   },
-   {
-    "text": "hash",
-    "at": 3533.7
-   },
-   {
-    "text": "I",
-    "at": 4423.1
-   },
-   {
-    "text": "went",
-    "at": 4495.2
-   },
-   {
-    "text": "looking",
-    "at": 4687.5
-   },
-   {
-    "text": "and",
-    "at": 5324.5
-   },
-   {
-    "text": "they're",
-    "at": 5396.6
-   },
-   {
-    "text": "empty",
-    "at": 5552.9
-   },
-   {
-    "text": "everywhere",
-    "at": 5853.4
-   },
-   {
-    "text": "So",
-    "at": 6778.8
-   },
-   {
-    "text": "you",
-    "at": 6875.0
-   },
-   {
-    "text": "get",
-    "at": 6983.2
-   },
-   {
-    "text": "a",
-    "at": 7115.4
-   },
-   {
-    "text": "number",
-    "at": 7151.5
-   },
-   {
-    "text": "with",
-    "at": 7476.0
-   },
-   {
-    "text": "nothing",
-    "at": 7632.2
-   },
-   {
-    "text": "you",
-    "at": 7968.8
-   },
-   {
-    "text": "can",
-    "at": 8076.9
-   },
-   {
-    "text": "actually",
-    "at": 8209.1
-   },
-   {
-    "text": "check",
-    "at": 8545.7
+    "text": "chain",
+    "at": 6021.6
    }
   ]
  },
  {
   "i": 2,
-  "tag": "memory on",
-  "line": "So I filled them. This agent has never worked with newcomer, but two other agents filed reports about them, and it can read those. It says no.",
+  "tag": "the gap",
+  "line": "But there are two fields for the evidence behind that score. A link, and a hash. I went looking, and they're empty everywhere. So you get a number with nothing you can actually check.",
   "file": "02.mp3",
-  "dur": 7968.0,
+  "dur": 9432.0,
   "words": [
    {
-    "text": "So",
+    "text": "But",
     "at": 96.2
    },
    {
-    "text": "I",
-    "at": 228.4
+    "text": "there",
+    "at": 180.3
    },
    {
-    "text": "filled",
-    "at": 300.5
-   },
-   {
-    "text": "them",
-    "at": 564.9
-   },
-   {
-    "text": "This",
-    "at": 1129.8
-   },
-   {
-    "text": "agent",
-    "at": 1310.1
-   },
-   {
-    "text": "has",
-    "at": 1646.6
-   },
-   {
-    "text": "never",
-    "at": 1790.9
-   },
-   {
-    "text": "worked",
-    "at": 2151.5
-   },
-   {
-    "text": "with",
-    "at": 2415.9
-   },
-   {
-    "text": "newcomer",
-    "at": 2548.1
-   },
-   {
-    "text": "but",
-    "at": 3329.3
+    "text": "are",
+    "at": 324.5
    },
    {
     "text": "two",
-    "at": 3473.5
+    "at": 432.7
    },
    {
-    "text": "other",
-    "at": 3714.0
+    "text": "fields",
+    "at": 697.1
    },
    {
-    "text": "agents",
-    "at": 3954.3
+    "text": "for",
+    "at": 1117.8
    },
    {
-    "text": "filed",
-    "at": 4290.9
+    "text": "the",
+    "at": 1238.0
    },
    {
-    "text": "reports",
-    "at": 4603.4
+    "text": "evidence",
+    "at": 1346.2
    },
    {
-    "text": "about",
-    "at": 4964.0
+    "text": "behind",
+    "at": 1754.8
    },
    {
-    "text": "them",
-    "at": 5228.4
+    "text": "that",
+    "at": 2115.4
+   },
+   {
+    "text": "score",
+    "at": 2295.7
+   },
+   {
+    "text": "A",
+    "at": 3089.0
+   },
+   {
+    "text": "link",
+    "at": 3149.0
    },
    {
     "text": "and",
-    "at": 5721.2
+    "at": 3545.7
    },
    {
-    "text": "it",
-    "at": 5793.2
+    "text": "a",
+    "at": 3605.8
+   },
+   {
+    "text": "hash",
+    "at": 3653.8
+   },
+   {
+    "text": "I",
+    "at": 4543.2
+   },
+   {
+    "text": "went",
+    "at": 4615.4
+   },
+   {
+    "text": "looking",
+    "at": 4807.7
+   },
+   {
+    "text": "and",
+    "at": 5444.7
+   },
+   {
+    "text": "they're",
+    "at": 5516.8
+   },
+   {
+    "text": "empty",
+    "at": 5673.1
+   },
+   {
+    "text": "everywhere",
+    "at": 5973.5
+   },
+   {
+    "text": "So",
+    "at": 6899.0
+   },
+   {
+    "text": "you",
+    "at": 6995.2
+   },
+   {
+    "text": "get",
+    "at": 7103.4
+   },
+   {
+    "text": "a",
+    "at": 7235.6
+   },
+   {
+    "text": "number",
+    "at": 7271.6
+   },
+   {
+    "text": "with",
+    "at": 7596.2
+   },
+   {
+    "text": "nothing",
+    "at": 7752.4
+   },
+   {
+    "text": "you",
+    "at": 8089.0
    },
    {
     "text": "can",
-    "at": 5865.4
+    "at": 8197.1
    },
    {
-    "text": "read",
-    "at": 6021.6
+    "text": "actually",
+    "at": 8329.3
    },
    {
-    "text": "those",
-    "at": 6250.0
-   },
-   {
-    "text": "It",
-    "at": 7031.2
-   },
-   {
-    "text": "says",
-    "at": 7115.4
-   },
-   {
-    "text": "no",
-    "at": 7343.8
+    "text": "check",
+    "at": 8665.9
    }
   ]
  },
  {
   "i": 3,
-  "tag": "fresh browser",
-  "line": "And this is a fresh browser. It has never seen these agents. Everything you're looking at is read off the chain right here.",
+  "tag": "what vouch is",
+  "line": "Vouch is the layer that fills them. Your agent writes down what a counterparty actually did, seals that with a hash, and files the seal on Base. Other agents read it and check it themselves.",
   "file": "03.mp3",
-  "dur": 6264.0,
+  "dur": 10824.0,
+  "words": [
+   {
+    "text": "Vouch",
+    "at": 96.2
+   },
+   {
+    "text": "is",
+    "at": 372.6
+   },
+   {
+    "text": "the",
+    "at": 480.8
+   },
+   {
+    "text": "layer",
+    "at": 601.0
+   },
+   {
+    "text": "that",
+    "at": 889.4
+   },
+   {
+    "text": "fills",
+    "at": 1021.6
+   },
+   {
+    "text": "them",
+    "at": 1346.2
+   },
+   {
+    "text": "Your",
+    "at": 1959.1
+   },
+   {
+    "text": "agent",
+    "at": 2103.4
+   },
+   {
+    "text": "writes",
+    "at": 2415.9
+   },
+   {
+    "text": "down",
+    "at": 2680.3
+   },
+   {
+    "text": "what",
+    "at": 2992.8
+   },
+   {
+    "text": "a",
+    "at": 3113.0
+   },
+   {
+    "text": "counterparty",
+    "at": 3173.1
+   },
+   {
+    "text": "actually",
+    "at": 3882.2
+   },
+   {
+    "text": "did",
+    "at": 4278.8
+   },
+   {
+    "text": "seals",
+    "at": 4951.9
+   },
+   {
+    "text": "that",
+    "at": 5264.4
+   },
+   {
+    "text": "with",
+    "at": 5396.6
+   },
+   {
+    "text": "a",
+    "at": 5528.8
+   },
+   {
+    "text": "hash",
+    "at": 5576.9
+   },
+   {
+    "text": "and",
+    "at": 6322.1
+   },
+   {
+    "text": "files",
+    "at": 6406.2
+   },
+   {
+    "text": "the",
+    "at": 6754.8
+   },
+   {
+    "text": "seal",
+    "at": 6851.0
+   },
+   {
+    "text": "on",
+    "at": 7163.5
+   },
+   {
+    "text": "Base",
+    "at": 7307.7
+   },
+   {
+    "text": "Other",
+    "at": 8197.1
+   },
+   {
+    "text": "agents",
+    "at": 8449.5
+   },
+   {
+    "text": "read",
+    "at": 8798.1
+   },
+   {
+    "text": "it",
+    "at": 9014.4
+   },
+   {
+    "text": "and",
+    "at": 9447.1
+   },
+   {
+    "text": "check",
+    "at": 9543.2
+   },
+   {
+    "text": "it",
+    "at": 9747.6
+   },
+   {
+    "text": "themselves",
+    "at": 9819.7
+   }
+  ]
+ },
+ {
+  "i": 4,
+  "tag": "the decision",
+  "line": "Here it is deciding. This agent has never worked with newcomer, but two other agents filed reports about them. It reads those, and it says no.",
+  "file": "04.mp3",
+  "dur": 8208.0,
+  "words": [
+   {
+    "text": "Here",
+    "at": 108.2
+   },
+   {
+    "text": "it",
+    "at": 216.3
+   },
+   {
+    "text": "is",
+    "at": 288.5
+   },
+   {
+    "text": "deciding",
+    "at": 396.6
+   },
+   {
+    "text": "This",
+    "at": 1322.1
+   },
+   {
+    "text": "agent",
+    "at": 1514.4
+   },
+   {
+    "text": "has",
+    "at": 1851.0
+   },
+   {
+    "text": "never",
+    "at": 1995.2
+   },
+   {
+    "text": "worked",
+    "at": 2343.8
+   },
+   {
+    "text": "with",
+    "at": 2608.2
+   },
+   {
+    "text": "newcomer",
+    "at": 2740.4
+   },
+   {
+    "text": "but",
+    "at": 3545.7
+   },
+   {
+    "text": "two",
+    "at": 3701.9
+   },
+   {
+    "text": "other",
+    "at": 3954.3
+   },
+   {
+    "text": "agents",
+    "at": 4218.8
+   },
+   {
+    "text": "filed",
+    "at": 4555.3
+   },
+   {
+    "text": "reports",
+    "at": 4855.8
+   },
+   {
+    "text": "about",
+    "at": 5216.3
+   },
+   {
+    "text": "them",
+    "at": 5492.8
+   },
+   {
+    "text": "It",
+    "at": 6057.7
+   },
+   {
+    "text": "reads",
+    "at": 6238.0
+   },
+   {
+    "text": "those",
+    "at": 6466.3
+   },
+   {
+    "text": "and",
+    "at": 7079.3
+   },
+   {
+    "text": "it",
+    "at": 7199.5
+   },
+   {
+    "text": "says",
+    "at": 7283.7
+   },
+   {
+    "text": "no",
+    "at": 7536.0
+   }
+  ]
+ },
+ {
+  "i": 5,
+  "tag": "fresh session",
+  "line": "And this is a fresh session. Nothing was carried over from the last run. It recalls the counterparty out of Sibyl Memory, pulls the filings off the registry, and that is where the refusal comes from.",
+  "file": "05.mp3",
+  "dur": 10680.0,
   "words": [
    {
     "text": "And",
@@ -371,99 +665,151 @@
    },
    {
     "text": "this",
-    "at": 180.3
+    "at": 192.3
    },
    {
     "text": "is",
-    "at": 336.5
+    "at": 348.5
    },
    {
     "text": "a",
-    "at": 444.7
+    "at": 456.8
    },
    {
     "text": "fresh",
-    "at": 504.8
+    "at": 516.8
    },
    {
-    "text": "browser",
+    "text": "session",
     "at": 817.3
    },
    {
-    "text": "It",
-    "at": 1670.7
+    "text": "Nothing",
+    "at": 1610.6
    },
    {
-    "text": "has",
-    "at": 1742.8
+    "text": "was",
+    "at": 1839.0
    },
    {
-    "text": "never",
-    "at": 1887.0
+    "text": "carried",
+    "at": 1983.2
    },
    {
-    "text": "seen",
-    "at": 2127.4
+    "text": "over",
+    "at": 2295.7
    },
    {
-    "text": "these",
-    "at": 2391.8
-   },
-   {
-    "text": "agents",
-    "at": 2584.1
-   },
-   {
-    "text": "Everything",
-    "at": 3473.5
-   },
-   {
-    "text": "you're",
-    "at": 3822.1
-   },
-   {
-    "text": "looking",
-    "at": 3954.3
-   },
-   {
-    "text": "at",
-    "at": 4242.8
-   },
-   {
-    "text": "is",
-    "at": 4363.0
-   },
-   {
-    "text": "read",
-    "at": 4495.2
-   },
-   {
-    "text": "off",
-    "at": 4807.7
+    "text": "from",
+    "at": 2524.0
    },
    {
     "text": "the",
-    "at": 5000.0
+    "at": 2692.3
    },
    {
-    "text": "chain",
-    "at": 5084.1
+    "text": "last",
+    "at": 2776.5
    },
    {
-    "text": "right",
-    "at": 5408.7
+    "text": "run",
+    "at": 3101.0
    },
    {
-    "text": "here",
-    "at": 5589.0
+    "text": "It",
+    "at": 3750.0
+   },
+   {
+    "text": "recalls",
+    "at": 3846.2
+   },
+   {
+    "text": "the",
+    "at": 4266.8
+   },
+   {
+    "text": "counterparty",
+    "at": 4375.0
+   },
+   {
+    "text": "out",
+    "at": 5288.5
+   },
+   {
+    "text": "of",
+    "at": 5432.7
+   },
+   {
+    "text": "Sibyl",
+    "at": 5528.8
+   },
+   {
+    "text": "Memory",
+    "at": 5865.4
+   },
+   {
+    "text": "pulls",
+    "at": 6574.5
+   },
+   {
+    "text": "the",
+    "at": 6875.0
+   },
+   {
+    "text": "filings",
+    "at": 6983.2
+   },
+   {
+    "text": "off",
+    "at": 7488.0
+   },
+   {
+    "text": "the",
+    "at": 7668.2
+   },
+   {
+    "text": "registry",
+    "at": 7764.4
+   },
+   {
+    "text": "and",
+    "at": 8617.8
+   },
+   {
+    "text": "that",
+    "at": 8726.0
+   },
+   {
+    "text": "is",
+    "at": 8918.2
+   },
+   {
+    "text": "where",
+    "at": 9026.5
+   },
+   {
+    "text": "the",
+    "at": 9182.7
+   },
+   {
+    "text": "refusal",
+    "at": 9266.8
+   },
+   {
+    "text": "comes",
+    "at": 9783.7
+   },
+   {
+    "text": "from",
+    "at": 10060.1
    }
   ]
  },
  {
-  "i": 4,
+  "i": 6,
   "tag": "the test",
   "line": "Now watch. I'm switching its memory off.",
-  "file": "04.mp3",
+  "file": "06.mp3",
   "dur": 2688.0,
   "words": [
    {
@@ -497,11 +843,11 @@
   ]
  },
  {
-  "i": 5,
+  "i": 7,
   "tag": "memory deleted",
-  "line": "Same code, same request, and it takes the job at full price. There's nothing to look up, so everybody looks fine.",
-  "file": "05.mp3",
-  "dur": 6744.0,
+  "line": "Same code, same request, and it takes the job at full price. There is nothing to recall, so everybody looks fine.",
+  "file": "07.mp3",
+  "dur": 7080.0,
   "words": [
    {
     "text": "Same",
@@ -552,49 +898,49 @@
     "at": 3245.2
    },
    {
-    "text": "There's",
-    "at": 4146.6
+    "text": "There",
+    "at": 4158.7
+   },
+   {
+    "text": "is",
+    "at": 4254.8
    },
    {
     "text": "nothing",
-    "at": 4290.9
+    "at": 4375.0
    },
    {
     "text": "to",
-    "at": 4543.2
+    "at": 4699.5
    },
    {
-    "text": "look",
-    "at": 4615.4
-   },
-   {
-    "text": "up",
-    "at": 4831.8
+    "text": "recall",
+    "at": 4819.7
    },
    {
     "text": "so",
-    "at": 5300.5
+    "at": 5601.0
    },
    {
     "text": "everybody",
-    "at": 5516.8
+    "at": 5793.2
    },
    {
     "text": "looks",
-    "at": 5865.4
+    "at": 6177.9
    },
    {
     "text": "fine",
-    "at": 6081.8
+    "at": 6394.2
    }
   ]
  },
  {
-  "i": 6,
+  "i": 8,
   "tag": "memory back on",
-  "line": "Turn it back on and it refuses again. This isn't a feature that gets worse without memory. There's nothing left of it.",
-  "file": "06.mp3",
-  "dur": 6432.0,
+  "line": "Turn it back on and it refuses again. This isn't a feature that gets worse without memory. There is nothing left of it.",
+  "file": "08.mp3",
+  "dur": 6552.0,
   "words": [
    {
     "text": "Turn",
@@ -665,32 +1011,36 @@
     "at": 4326.9
    },
    {
-    "text": "There's",
-    "at": 5132.2
+    "text": "There",
+    "at": 5144.2
+   },
+   {
+    "text": "is",
+    "at": 5240.4
    },
    {
     "text": "nothing",
-    "at": 5264.4
+    "at": 5348.5
    },
    {
     "text": "left",
-    "at": 5564.9
+    "at": 5649.0
    },
    {
     "text": "of",
-    "at": 5817.3
+    "at": 5913.5
    },
    {
     "text": "it",
-    "at": 5913.5
+    "at": 6009.6
    }
   ]
  },
  {
-  "i": 7,
+  "i": 9,
   "tag": "checked in your browser",
   "line": "Your browser downloads each filing and hashes it itself. The hash that's on chain, and the hash it just worked out. They match, so the filing counts.",
-  "file": "07.mp3",
+  "file": "09.mp3",
   "dur": 8880.0,
   "words": [
    {
@@ -804,10 +1154,10 @@
   ]
  },
  {
-  "i": 8,
+  "i": 10,
   "tag": "two wallets",
   "line": "The two reports came from separate wallets that can't see each other's memory. They only line up because both of them are on the registry.",
-  "file": "08.mp3",
+  "file": "10.mp3",
   "dur": 7248.0,
   "words": [
    {
@@ -913,10 +1263,10 @@
   ]
  },
  {
-  "i": 9,
+  "i": 11,
   "tag": "both sides",
   "line": "The standard also lets a rated agent reply, and nobody uses it. Here the accused agent files its own answer, sealed the same way, so you get both sides.",
-  "file": "09.mp3",
+  "file": "11.mp3",
   "dur": 9552.0,
   "words": [
    {
@@ -1038,10 +1388,10 @@
   ]
  },
  {
-  "i": 10,
+  "i": 12,
   "tag": "tamper check",
   "line": "And if someone edits a filing afterwards, say to delete the dispute, the hash changes and it gets dropped.",
-  "file": "10.mp3",
+  "file": "12.mp3",
   "dur": 6048.0,
   "words": [
    {
@@ -1123,10 +1473,10 @@
   ]
  },
  {
-  "i": 11,
+  "i": 13,
   "tag": "try it yourself",
   "line": "You can put any agent id in here and it queries the registry live. Two raters, two filings, both seals checked, and the statements pulled back out.",
-  "file": "11.mp3",
+  "file": "13.mp3",
   "dur": 9048.0,
   "words": [
    {
@@ -1240,135 +1590,252 @@
   ]
  },
  {
-  "i": 12,
-  "tag": "sibyl memory",
-  "line": "Underneath it's Sibyl Memory. Five tiers, one row per counterparty, and a journal that only gets added to. So a dispute it quotes is a record it actually holds.",
-  "file": "12.mp3",
-  "dur": 10008.0,
+  "i": 14,
+  "tag": "sibyl memory, entities",
+  "line": "All the memory here is Sibyl. One row per counterparty in the entity tier, and duplicates are blocked by the schema itself, not by convention.",
+  "file": "14.mp3",
+  "dur": 8496.0,
   "words": [
    {
-    "text": "Underneath",
+    "text": "All",
     "at": 96.2
    },
    {
-    "text": "it's",
-    "at": 673.1
+    "text": "the",
+    "at": 228.4
    },
    {
-    "text": "Sibyl",
-    "at": 817.3
+    "text": "memory",
+    "at": 300.5
    },
    {
-    "text": "Memory",
-    "at": 1105.8
-   },
-   {
-    "text": "Five",
-    "at": 1983.2
-   },
-   {
-    "text": "tiers",
-    "at": 2235.6
-   },
-   {
-    "text": "one",
-    "at": 2992.8
-   },
-   {
-    "text": "row",
-    "at": 3293.2
-   },
-   {
-    "text": "per",
-    "at": 3569.7
-   },
-   {
-    "text": "counterparty",
-    "at": 3738.0
-   },
-   {
-    "text": "and",
-    "at": 4711.5
-   },
-   {
-    "text": "a",
-    "at": 4831.8
-   },
-   {
-    "text": "journal",
-    "at": 4891.8
-   },
-   {
-    "text": "that",
-    "at": 5300.5
-   },
-   {
-    "text": "only",
-    "at": 5444.7
-   },
-   {
-    "text": "gets",
-    "at": 5709.1
-   },
-   {
-    "text": "added",
-    "at": 5949.5
-   },
-   {
-    "text": "to",
-    "at": 6262.0
-   },
-   {
-    "text": "So",
-    "at": 6911.0
-   },
-   {
-    "text": "a",
-    "at": 7067.3
-   },
-   {
-    "text": "dispute",
-    "at": 7115.4
-   },
-   {
-    "text": "it",
-    "at": 7536.0
-   },
-   {
-    "text": "quotes",
-    "at": 7632.2
+    "text": "here",
+    "at": 649.0
    },
    {
     "text": "is",
-    "at": 8173.1
+    "at": 1045.7
    },
    {
-    "text": "a",
-    "at": 8269.2
+    "text": "Sibyl",
+    "at": 1141.8
    },
    {
-    "text": "record",
-    "at": 8329.3
+    "text": "One",
+    "at": 1935.1
    },
    {
-    "text": "it",
-    "at": 8701.9
+    "text": "row",
+    "at": 2199.5
    },
    {
-    "text": "actually",
-    "at": 8810.1
+    "text": "per",
+    "at": 2427.9
    },
    {
-    "text": "holds",
-    "at": 9182.7
+    "text": "counterparty",
+    "at": 2620.2
+   },
+   {
+    "text": "in",
+    "at": 3413.5
+   },
+   {
+    "text": "the",
+    "at": 3509.6
+   },
+   {
+    "text": "entity",
+    "at": 3593.8
+   },
+   {
+    "text": "tier",
+    "at": 3918.2
+   },
+   {
+    "text": "and",
+    "at": 4591.3
+   },
+   {
+    "text": "duplicates",
+    "at": 4663.5
+   },
+   {
+    "text": "are",
+    "at": 5192.3
+   },
+   {
+    "text": "blocked",
+    "at": 5372.6
+   },
+   {
+    "text": "by",
+    "at": 5793.2
+   },
+   {
+    "text": "the",
+    "at": 5901.5
+   },
+   {
+    "text": "schema",
+    "at": 5997.6
+   },
+   {
+    "text": "itself",
+    "at": 6406.2
+   },
+   {
+    "text": "not",
+    "at": 7271.6
+   },
+   {
+    "text": "by",
+    "at": 7488.0
+   },
+   {
+    "text": "convention",
+    "at": 7644.2
    }
   ]
  },
  {
-  "i": 13,
+  "i": 15,
+  "tag": "sibyl memory, journal and policy",
+  "line": "What happened to them goes in the journal, which only ever gets added to. And the trust rules sit in the reference tier, so I can change policy without touching code.",
+  "file": "15.mp3",
+  "dur": 8520.0,
+  "words": [
+   {
+    "text": "What",
+    "at": 96.2
+   },
+   {
+    "text": "happened",
+    "at": 204.3
+   },
+   {
+    "text": "to",
+    "at": 589.0
+   },
+   {
+    "text": "them",
+    "at": 673.1
+   },
+   {
+    "text": "goes",
+    "at": 877.4
+   },
+   {
+    "text": "in",
+    "at": 1189.9
+   },
+   {
+    "text": "the",
+    "at": 1262.0
+   },
+   {
+    "text": "journal",
+    "at": 1358.2
+   },
+   {
+    "text": "which",
+    "at": 2055.3
+   },
+   {
+    "text": "only",
+    "at": 2211.5
+   },
+   {
+    "text": "ever",
+    "at": 2464.0
+   },
+   {
+    "text": "gets",
+    "at": 2656.2
+   },
+   {
+    "text": "added",
+    "at": 2860.6
+   },
+   {
+    "text": "to",
+    "at": 3149.0
+   },
+   {
+    "text": "And",
+    "at": 3786.0
+   },
+   {
+    "text": "the",
+    "at": 3858.2
+   },
+   {
+    "text": "trust",
+    "at": 3942.3
+   },
+   {
+    "text": "rules",
+    "at": 4302.9
+   },
+   {
+    "text": "sit",
+    "at": 4579.3
+   },
+   {
+    "text": "in",
+    "at": 4783.7
+   },
+   {
+    "text": "the",
+    "at": 4879.8
+   },
+   {
+    "text": "reference",
+    "at": 4964.0
+   },
+   {
+    "text": "tier",
+    "at": 5336.5
+   },
+   {
+    "text": "so",
+    "at": 5949.5
+   },
+   {
+    "text": "I",
+    "at": 6093.8
+   },
+   {
+    "text": "can",
+    "at": 6165.9
+   },
+   {
+    "text": "change",
+    "at": 6310.1
+   },
+   {
+    "text": "policy",
+    "at": 6598.5
+   },
+   {
+    "text": "without",
+    "at": 7103.4
+   },
+   {
+    "text": "touching",
+    "at": 7500.0
+   },
+   {
+    "text": "code",
+    "at": 7824.5
+   }
+  ]
+ },
+ {
+  "i": 16,
   "tag": "the stack",
   "line": "Every filing is a real transaction on Base, and Vouch sells the check as a service on Virtuals ACP, so another agent can just buy one.",
-  "file": "13.mp3",
+  "file": "16.mp3",
   "dur": 8664.0,
   "words": [
    {
@@ -1478,71 +1945,75 @@
   ]
  },
  {
-  "i": 14,
+  "i": 17,
   "tag": "vouch",
-  "line": "Everyone's building agents that remember. I built the part that lets them tell each other.",
-  "file": "14.mp3",
-  "dur": 4536.0,
+  "line": "Everyone is building agents that remember. I built the part that lets them tell each other.",
+  "file": "17.mp3",
+  "dur": 4680.0,
   "words": [
    {
-    "text": "Everyone's",
+    "text": "Everyone",
     "at": 96.2
    },
    {
+    "text": "is",
+    "at": 576.9
+   },
+   {
     "text": "building",
-    "at": 552.9
+    "at": 697.1
    },
    {
     "text": "agents",
-    "at": 961.5
+    "at": 1105.8
    },
    {
     "text": "that",
-    "at": 1334.1
-   },
-   {
-    "text": "remember",
     "at": 1478.4
    },
    {
+    "text": "remember",
+    "at": 1622.6
+   },
+   {
     "text": "I",
-    "at": 2331.8
+    "at": 2488.0
    },
    {
     "text": "built",
-    "at": 2415.9
+    "at": 2572.1
    },
    {
     "text": "the",
-    "at": 2656.2
+    "at": 2812.5
    },
    {
     "text": "part",
-    "at": 2764.4
+    "at": 2920.7
    },
    {
     "text": "that",
-    "at": 3064.9
-   },
-   {
-    "text": "lets",
     "at": 3221.2
    },
    {
+    "text": "lets",
+    "at": 3377.4
+   },
+   {
     "text": "them",
-    "at": 3413.5
+    "at": 3569.7
    },
    {
     "text": "tell",
-    "at": 3545.7
+    "at": 3701.9
    },
    {
     "text": "each",
-    "at": 3738.0
+    "at": 3894.2
    },
    {
     "text": "other",
-    "at": 3894.2
+    "at": 4050.5
    }
   ]
  }

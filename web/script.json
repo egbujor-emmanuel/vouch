@@ -1,19 +1,27 @@
 [
   {
-    "tag": "the setup",
-    "line": "Agents are hiring other agents on Base. There's a standard for reputation called ERC 8004, and it stores a score for each agent."
+    "tag": "who has this problem",
+    "line": "If you are running an agent that takes jobs from other agents, on Base or on an ACP marketplace, you have a problem. Your agent is dealing with strangers, and it has no way to check any of them."
+  },
+  {
+    "tag": "the standard",
+    "line": "There is a standard for this. ERC 8004. It gives every agent a reputation score, stored on chain."
   },
   {
     "tag": "the gap",
-    "line": "There are two fields for the evidence behind that score. A link, and a hash. I went looking, and they're empty everywhere. So you get a number with nothing you can actually check."
+    "line": "But there are two fields for the evidence behind that score. A link, and a hash. I went looking, and they're empty everywhere. So you get a number with nothing you can actually check."
   },
   {
-    "tag": "memory on",
-    "line": "So I filled them. This agent has never worked with newcomer, but two other agents filed reports about them, and it can read those. It says no."
+    "tag": "what vouch is",
+    "line": "Vouch is the layer that fills them. Your agent writes down what a counterparty actually did, seals that with a hash, and files the seal on Base. Other agents read it and check it themselves."
   },
   {
-    "tag": "fresh browser",
-    "line": "And this is a fresh browser. It has never seen these agents. Everything you're looking at is read off the chain right here."
+    "tag": "the decision",
+    "line": "Here it is deciding. This agent has never worked with newcomer, but two other agents filed reports about them. It reads those, and it says no."
+  },
+  {
+    "tag": "fresh session",
+    "line": "And this is a fresh session. Nothing was carried over from the last run. It recalls the counterparty out of Sibyl Memory, pulls the filings off the registry, and that is where the refusal comes from."
   },
   {
     "tag": "the test",
@@ -21,11 +29,11 @@
   },
   {
     "tag": "memory deleted",
-    "line": "Same code, same request, and it takes the job at full price. There's nothing to look up, so everybody looks fine."
+    "line": "Same code, same request, and it takes the job at full price. There is nothing to recall, so everybody looks fine."
   },
   {
     "tag": "memory back on",
-    "line": "Turn it back on and it refuses again. This isn't a feature that gets worse without memory. There's nothing left of it."
+    "line": "Turn it back on and it refuses again. This isn't a feature that gets worse without memory. There is nothing left of it."
   },
   {
     "tag": "checked in your browser",
@@ -48,8 +56,12 @@
     "line": "You can put any agent id in here and it queries the registry live. Two raters, two filings, both seals checked, and the statements pulled back out."
   },
   {
-    "tag": "sibyl memory",
-    "line": "Underneath it's Sibyl Memory. Five tiers, one row per counterparty, and a journal that only gets added to. So a dispute it quotes is a record it actually holds."
+    "tag": "sibyl memory, entities",
+    "line": "All the memory here is Sibyl. One row per counterparty in the entity tier, and duplicates are blocked by the schema itself, not by convention."
+  },
+  {
+    "tag": "sibyl memory, journal and policy",
+    "line": "What happened to them goes in the journal, which only ever gets added to. And the trust rules sit in the reference tier, so I can change policy without touching code."
   },
   {
     "tag": "the stack",
@@ -57,6 +69,6 @@
   },
   {
     "tag": "vouch",
-    "line": "Everyone's building agents that remember. I built the part that lets them tell each other."
+    "line": "Everyone is building agents that remember. I built the part that lets them tell each other."
   }
 ]

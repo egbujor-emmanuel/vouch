@@ -1,92 +1,110 @@
 [
  {
   "i": 0,
-  "tag": "the setup",
-  "at": 1610,
-  "dur": 8592
+  "tag": "who has this problem",
+  "at": 1470,
+  "dur": 10632
  },
  {
   "i": 1,
-  "tag": "the gap",
-  "at": 10628,
-  "dur": 9312
+  "tag": "the standard",
+  "at": 12471,
+  "dur": 6720
  },
  {
   "i": 2,
-  "tag": "memory on",
-  "at": 21743,
-  "dur": 7968
+  "tag": "the gap",
+  "at": 19646,
+  "dur": 9432
  },
  {
   "i": 3,
-  "tag": "fresh browser",
-  "at": 30100,
-  "dur": 6264
+  "tag": "what vouch is",
+  "at": 29497,
+  "dur": 10824
  },
  {
   "i": 4,
-  "tag": "the test",
-  "at": 36722,
-  "dur": 2688
+  "tag": "the decision",
+  "at": 42224,
+  "dur": 8208
  },
  {
   "i": 5,
-  "tag": "memory deleted",
-  "at": 41236,
-  "dur": 6744
+  "tag": "fresh session",
+  "at": 50808,
+  "dur": 10680
  },
  {
   "i": 6,
-  "tag": "memory back on",
-  "at": 49807,
-  "dur": 6432
+  "tag": "the test",
+  "at": 61842,
+  "dur": 2688
  },
  {
   "i": 7,
-  "tag": "checked in your browser",
-  "at": 58005,
-  "dur": 8880
+  "tag": "memory deleted",
+  "at": 66362,
+  "dur": 7080
  },
  {
   "i": 8,
-  "tag": "two wallets",
-  "at": 67236,
-  "dur": 7248
+  "tag": "memory back on",
+  "at": 75204,
+  "dur": 6552
  },
  {
   "i": 9,
-  "tag": "both sides",
-  "at": 76256,
-  "dur": 9552
+  "tag": "checked in your browser",
+  "at": 83530,
+  "dur": 8880
  },
  {
   "i": 10,
-  "tag": "tamper check",
-  "at": 90024,
-  "dur": 6048
+  "tag": "two wallets",
+  "at": 92764,
+  "dur": 7248
  },
  {
   "i": 11,
-  "tag": "try it yourself",
-  "at": 108310,
-  "dur": 9048
+  "tag": "both sides",
+  "at": 101791,
+  "dur": 9552
  },
  {
   "i": 12,
-  "tag": "sibyl memory",
-  "at": 119135,
-  "dur": 10008
+  "tag": "tamper check",
+  "at": 115497,
+  "dur": 6048
  },
  {
   "i": 13,
-  "tag": "the stack",
-  "at": 130910,
-  "dur": 8664
+  "tag": "try it yourself",
+  "at": 140252,
+  "dur": 9048
  },
  {
   "i": 14,
+  "tag": "sibyl memory, entities",
+  "at": 151077,
+  "dur": 8496
+ },
+ {
+  "i": 15,
+  "tag": "sibyl memory, journal and policy",
+  "at": 161338,
+  "dur": 8520
+ },
+ {
+  "i": 16,
+  "tag": "the stack",
+  "at": 171622,
+  "dur": 8664
+ },
+ {
+  "i": 17,
   "tag": "vouch",
-  "at": 141559,
-  "dur": 4536
+  "at": 182259,
+  "dur": 4680
  }
 ]
