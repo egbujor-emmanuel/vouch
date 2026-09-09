@@ -1,0 +1,1549 @@
+[
+ {
+  "i": 0,
+  "tag": "the setup",
+  "line": "Agents are hiring other agents on Base. There's a standard for reputation called ERC 8004, and it stores a score for each agent.",
+  "file": "00.mp3",
+  "dur": 8592.0,
+  "words": [
+   {
+    "text": "Agents",
+    "at": 84.1
+   },
+   {
+    "text": "are",
+    "at": 432.7
+   },
+   {
+    "text": "hiring",
+    "at": 528.8
+   },
+   {
+    "text": "other",
+    "at": 1009.6
+   },
+   {
+    "text": "agents",
+    "at": 1214.0
+   },
+   {
+    "text": "on",
+    "at": 1526.5
+   },
+   {
+    "text": "Base",
+    "at": 1658.7
+   },
+   {
+    "text": "There's",
+    "at": 2524.0
+   },
+   {
+    "text": "a",
+    "at": 2668.2
+   },
+   {
+    "text": "standard",
+    "at": 2728.4
+   },
+   {
+    "text": "for",
+    "at": 3185.1
+   },
+   {
+    "text": "reputation",
+    "at": 3329.3
+   },
+   {
+    "text": "called",
+    "at": 3978.4
+   },
+   {
+    "text": "ERC",
+    "at": 4399.0
+   },
+   {
+    "text": "8004",
+    "at": 5096.2
+   },
+   {
+    "text": "and",
+    "at": 6514.4
+   },
+   {
+    "text": "it",
+    "at": 6574.5
+   },
+   {
+    "text": "stores",
+    "at": 6658.7
+   },
+   {
+    "text": "a",
+    "at": 7007.2
+   },
+   {
+    "text": "score",
+    "at": 7079.3
+   },
+   {
+    "text": "for",
+    "at": 7464.0
+   },
+   {
+    "text": "each",
+    "at": 7668.2
+   },
+   {
+    "text": "agent",
+    "at": 7884.6
+   }
+  ]
+ },
+ {
+  "i": 1,
+  "tag": "the gap",
+  "line": "There are two fields for the evidence behind that score. A link, and a hash. I went looking, and they're empty everywhere. So you get a number with nothing you can actually check.",
+  "file": "01.mp3",
+  "dur": 9312.0,
+  "words": [
+   {
+    "text": "There",
+    "at": 108.2
+   },
+   {
+    "text": "are",
+    "at": 204.3
+   },
+   {
+    "text": "two",
+    "at": 312.5
+   },
+   {
+    "text": "fields",
+    "at": 576.9
+   },
+   {
+    "text": "for",
+    "at": 997.6
+   },
+   {
+    "text": "the",
+    "at": 1117.8
+   },
+   {
+    "text": "evidence",
+    "at": 1226.0
+   },
+   {
+    "text": "behind",
+    "at": 1634.6
+   },
+   {
+    "text": "that",
+    "at": 1995.2
+   },
+   {
+    "text": "score",
+    "at": 2175.5
+   },
+   {
+    "text": "A",
+    "at": 2968.8
+   },
+   {
+    "text": "link",
+    "at": 3028.8
+   },
+   {
+    "text": "and",
+    "at": 3425.5
+   },
+   {
+    "text": "a",
+    "at": 3485.6
+   },
+   {
+    "text": "hash",
+    "at": 3533.7
+   },
+   {
+    "text": "I",
+    "at": 4423.1
+   },
+   {
+    "text": "went",
+    "at": 4495.2
+   },
+   {
+    "text": "looking",
+    "at": 4687.5
+   },
+   {
+    "text": "and",
+    "at": 5324.5
+   },
+   {
+    "text": "they're",
+    "at": 5396.6
+   },
+   {
+    "text": "empty",
+    "at": 5552.9
+   },
+   {
+    "text": "everywhere",
+    "at": 5853.4
+   },
+   {
+    "text": "So",
+    "at": 6778.8
+   },
+   {
+    "text": "you",
+    "at": 6875.0
+   },
+   {
+    "text": "get",
+    "at": 6983.2
+   },
+   {
+    "text": "a",
+    "at": 7115.4
+   },
+   {
+    "text": "number",
+    "at": 7151.5
+   },
+   {
+    "text": "with",
+    "at": 7476.0
+   },
+   {
+    "text": "nothing",
+    "at": 7632.2
+   },
+   {
+    "text": "you",
+    "at": 7968.8
+   },
+   {
+    "text": "can",
+    "at": 8076.9
+   },
+   {
+    "text": "actually",
+    "at": 8209.1
+   },
+   {
+    "text": "check",
+    "at": 8545.7
+   }
+  ]
+ },
+ {
+  "i": 2,
+  "tag": "memory on",
+  "line": "So I filled them. This agent has never worked with newcomer, but two other agents filed reports about them, and it can read those. It says no.",
+  "file": "02.mp3",
+  "dur": 7968.0,
+  "words": [
+   {
+    "text": "So",
+    "at": 96.2
+   },
+   {
+    "text": "I",
+    "at": 228.4
+   },
+   {
+    "text": "filled",
+    "at": 300.5
+   },
+   {
+    "text": "them",
+    "at": 564.9
+   },
+   {
+    "text": "This",
+    "at": 1129.8
+   },
+   {
+    "text": "agent",
+    "at": 1310.1
+   },
+   {
+    "text": "has",
+    "at": 1646.6
+   },
+   {
+    "text": "never",
+    "at": 1790.9
+   },
+   {
+    "text": "worked",
+    "at": 2151.5
+   },
+   {
+    "text": "with",
+    "at": 2415.9
+   },
+   {
+    "text": "newcomer",
+    "at": 2548.1
+   },
+   {
+    "text": "but",
+    "at": 3329.3
+   },
+   {
+    "text": "two",
+    "at": 3473.5
+   },
+   {
+    "text": "other",
+    "at": 3714.0
+   },
+   {
+    "text": "agents",
+    "at": 3954.3
+   },
+   {
+    "text": "filed",
+    "at": 4290.9
+   },
+   {
+    "text": "reports",
+    "at": 4603.4
+   },
+   {
+    "text": "about",
+    "at": 4964.0
+   },
+   {
+    "text": "them",
+    "at": 5228.4
+   },
+   {
+    "text": "and",
+    "at": 5721.2
+   },
+   {
+    "text": "it",
+    "at": 5793.2
+   },
+   {
+    "text": "can",
+    "at": 5865.4
+   },
+   {
+    "text": "read",
+    "at": 6021.6
+   },
+   {
+    "text": "those",
+    "at": 6250.0
+   },
+   {
+    "text": "It",
+    "at": 7031.2
+   },
+   {
+    "text": "says",
+    "at": 7115.4
+   },
+   {
+    "text": "no",
+    "at": 7343.8
+   }
+  ]
+ },
+ {
+  "i": 3,
+  "tag": "fresh browser",
+  "line": "And this is a fresh browser. It has never seen these agents. Everything you're looking at is read off the chain right here.",
+  "file": "03.mp3",
+  "dur": 6264.0,
+  "words": [
+   {
+    "text": "And",
+    "at": 96.2
+   },
+   {
+    "text": "this",
+    "at": 180.3
+   },
+   {
+    "text": "is",
+    "at": 336.5
+   },
+   {
+    "text": "a",
+    "at": 444.7
+   },
+   {
+    "text": "fresh",
+    "at": 504.8
+   },
+   {
+    "text": "browser",
+    "at": 817.3
+   },
+   {
+    "text": "It",
+    "at": 1670.7
+   },
+   {
+    "text": "has",
+    "at": 1742.8
+   },
+   {
+    "text": "never",
+    "at": 1887.0
+   },
+   {
+    "text": "seen",
+    "at": 2127.4
+   },
+   {
+    "text": "these",
+    "at": 2391.8
+   },
+   {
+    "text": "agents",
+    "at": 2584.1
+   },
+   {
+    "text": "Everything",
+    "at": 3473.5
+   },
+   {
+    "text": "you're",
+    "at": 3822.1
+   },
+   {
+    "text": "looking",
+    "at": 3954.3
+   },
+   {
+    "text": "at",
+    "at": 4242.8
+   },
+   {
+    "text": "is",
+    "at": 4363.0
+   },
+   {
+    "text": "read",
+    "at": 4495.2
+   },
+   {
+    "text": "off",
+    "at": 4807.7
+   },
+   {
+    "text": "the",
+    "at": 5000.0
+   },
+   {
+    "text": "chain",
+    "at": 5084.1
+   },
+   {
+    "text": "right",
+    "at": 5408.7
+   },
+   {
+    "text": "here",
+    "at": 5589.0
+   }
+  ]
+ },
+ {
+  "i": 4,
+  "tag": "the test",
+  "line": "Now watch. I'm switching its memory off.",
+  "file": "04.mp3",
+  "dur": 2688.0,
+  "words": [
+   {
+    "text": "Now",
+    "at": 96.2
+   },
+   {
+    "text": "watch",
+    "at": 264.4
+   },
+   {
+    "text": "I'm",
+    "at": 1033.7
+   },
+   {
+    "text": "switching",
+    "at": 1153.8
+   },
+   {
+    "text": "its",
+    "at": 1514.4
+   },
+   {
+    "text": "memory",
+    "at": 1646.6
+   },
+   {
+    "text": "off",
+    "at": 2007.2
+   }
+  ]
+ },
+ {
+  "i": 5,
+  "tag": "memory deleted",
+  "line": "Same code, same request, and it takes the job at full price. There's nothing to look up, so everybody looks fine.",
+  "file": "05.mp3",
+  "dur": 6744.0,
+  "words": [
+   {
+    "text": "Same",
+    "at": 96.2
+   },
+   {
+    "text": "code",
+    "at": 336.5
+   },
+   {
+    "text": "same",
+    "at": 1045.7
+   },
+   {
+    "text": "request",
+    "at": 1250.0
+   },
+   {
+    "text": "and",
+    "at": 2103.4
+   },
+   {
+    "text": "it",
+    "at": 2163.5
+   },
+   {
+    "text": "takes",
+    "at": 2259.6
+   },
+   {
+    "text": "the",
+    "at": 2512.0
+   },
+   {
+    "text": "job",
+    "at": 2608.2
+   },
+   {
+    "text": "at",
+    "at": 2956.8
+   },
+   {
+    "text": "full",
+    "at": 3040.9
+   },
+   {
+    "text": "price",
+    "at": 3245.2
+   },
+   {
+    "text": "There's",
+    "at": 4146.6
+   },
+   {
+    "text": "nothing",
+    "at": 4290.9
+   },
+   {
+    "text": "to",
+    "at": 4543.2
+   },
+   {
+    "text": "look",
+    "at": 4615.4
+   },
+   {
+    "text": "up",
+    "at": 4831.8
+   },
+   {
+    "text": "so",
+    "at": 5300.5
+   },
+   {
+    "text": "everybody",
+    "at": 5516.8
+   },
+   {
+    "text": "looks",
+    "at": 5865.4
+   },
+   {
+    "text": "fine",
+    "at": 6081.8
+   }
+  ]
+ },
+ {
+  "i": 6,
+  "tag": "memory back on",
+  "line": "Turn it back on and it refuses again. This isn't a feature that gets worse without memory. There's nothing left of it.",
+  "file": "06.mp3",
+  "dur": 6432.0,
+  "words": [
+   {
+    "text": "Turn",
+    "at": 96.2
+   },
+   {
+    "text": "it",
+    "at": 252.4
+   },
+   {
+    "text": "back",
+    "at": 348.5
+   },
+   {
+    "text": "on",
+    "at": 613.0
+   },
+   {
+    "text": "and",
+    "at": 1069.7
+   },
+   {
+    "text": "it",
+    "at": 1177.9
+   },
+   {
+    "text": "refuses",
+    "at": 1286.0
+   },
+   {
+    "text": "again",
+    "at": 1790.9
+   },
+   {
+    "text": "This",
+    "at": 2536.0
+   },
+   {
+    "text": "isn't",
+    "at": 2668.2
+   },
+   {
+    "text": "a",
+    "at": 2884.6
+   },
+   {
+    "text": "feature",
+    "at": 2932.7
+   },
+   {
+    "text": "that",
+    "at": 3305.3
+   },
+   {
+    "text": "gets",
+    "at": 3425.5
+   },
+   {
+    "text": "worse",
+    "at": 3617.8
+   },
+   {
+    "text": "without",
+    "at": 3978.4
+   },
+   {
+    "text": "memory",
+    "at": 4326.9
+   },
+   {
+    "text": "There's",
+    "at": 5132.2
+   },
+   {
+    "text": "nothing",
+    "at": 5264.4
+   },
+   {
+    "text": "left",
+    "at": 5564.9
+   },
+   {
+    "text": "of",
+    "at": 5817.3
+   },
+   {
+    "text": "it",
+    "at": 5913.5
+   }
+  ]
+ },
+ {
+  "i": 7,
+  "tag": "checked in your browser",
+  "line": "Your browser downloads each filing and hashes it itself. The hash that's on chain, and the hash it just worked out. They match, so the filing counts.",
+  "file": "07.mp3",
+  "dur": 8880.0,
+  "words": [
+   {
+    "text": "Your",
+    "at": 96.2
+   },
+   {
+    "text": "browser",
+    "at": 204.3
+   },
+   {
+    "text": "downloads",
+    "at": 601.0
+   },
+   {
+    "text": "each",
+    "at": 1382.2
+   },
+   {
+    "text": "filing",
+    "at": 1550.5
+   },
+   {
+    "text": "and",
+    "at": 2211.5
+   },
+   {
+    "text": "hashes",
+    "at": 2283.7
+   },
+   {
+    "text": "it",
+    "at": 2752.4
+   },
+   {
+    "text": "itself",
+    "at": 2824.5
+   },
+   {
+    "text": "The",
+    "at": 3738.0
+   },
+   {
+    "text": "hash",
+    "at": 3798.1
+   },
+   {
+    "text": "that's",
+    "at": 4062.5
+   },
+   {
+    "text": "on",
+    "at": 4254.8
+   },
+   {
+    "text": "chain",
+    "at": 4423.1
+   },
+   {
+    "text": "and",
+    "at": 5096.2
+   },
+   {
+    "text": "the",
+    "at": 5156.2
+   },
+   {
+    "text": "hash",
+    "at": 5240.4
+   },
+   {
+    "text": "it",
+    "at": 5552.9
+   },
+   {
+    "text": "just",
+    "at": 5649.0
+   },
+   {
+    "text": "worked",
+    "at": 5853.4
+   },
+   {
+    "text": "out",
+    "at": 6105.8
+   },
+   {
+    "text": "They",
+    "at": 6754.8
+   },
+   {
+    "text": "match",
+    "at": 6851.0
+   },
+   {
+    "text": "so",
+    "at": 7488.0
+   },
+   {
+    "text": "the",
+    "at": 7608.2
+   },
+   {
+    "text": "filing",
+    "at": 7704.3
+   },
+   {
+    "text": "counts",
+    "at": 8040.9
+   }
+  ]
+ },
+ {
+  "i": 8,
+  "tag": "two wallets",
+  "line": "The two reports came from separate wallets that can't see each other's memory. They only line up because both of them are on the registry.",
+  "file": "08.mp3",
+  "dur": 7248.0,
+  "words": [
+   {
+    "text": "The",
+    "at": 108.2
+   },
+   {
+    "text": "two",
+    "at": 192.3
+   },
+   {
+    "text": "reports",
+    "at": 396.6
+   },
+   {
+    "text": "came",
+    "at": 829.3
+   },
+   {
+    "text": "from",
+    "at": 1105.8
+   },
+   {
+    "text": "separate",
+    "at": 1274.0
+   },
+   {
+    "text": "wallets",
+    "at": 1682.7
+   },
+   {
+    "text": "that",
+    "at": 2079.3
+   },
+   {
+    "text": "can't",
+    "at": 2223.5
+   },
+   {
+    "text": "see",
+    "at": 2536.0
+   },
+   {
+    "text": "each",
+    "at": 2848.5
+   },
+   {
+    "text": "other's",
+    "at": 3101.0
+   },
+   {
+    "text": "memory",
+    "at": 3353.4
+   },
+   {
+    "text": "They",
+    "at": 4206.8
+   },
+   {
+    "text": "only",
+    "at": 4339.0
+   },
+   {
+    "text": "line",
+    "at": 4555.3
+   },
+   {
+    "text": "up",
+    "at": 4843.8
+   },
+   {
+    "text": "because",
+    "at": 5144.2
+   },
+   {
+    "text": "both",
+    "at": 5444.7
+   },
+   {
+    "text": "of",
+    "at": 5721.2
+   },
+   {
+    "text": "them",
+    "at": 5805.3
+   },
+   {
+    "text": "are",
+    "at": 6069.7
+   },
+   {
+    "text": "on",
+    "at": 6177.9
+   },
+   {
+    "text": "the",
+    "at": 6274.0
+   },
+   {
+    "text": "registry",
+    "at": 6346.2
+   }
+  ]
+ },
+ {
+  "i": 9,
+  "tag": "both sides",
+  "line": "The standard also lets a rated agent reply, and nobody uses it. Here the accused agent files its own answer, sealed the same way, so you get both sides.",
+  "file": "09.mp3",
+  "dur": 9552.0,
+  "words": [
+   {
+    "text": "The",
+    "at": 108.2
+   },
+   {
+    "text": "standard",
+    "at": 168.2
+   },
+   {
+    "text": "also",
+    "at": 637.0
+   },
+   {
+    "text": "lets",
+    "at": 985.6
+   },
+   {
+    "text": "a",
+    "at": 1201.9
+   },
+   {
+    "text": "rated",
+    "at": 1274.0
+   },
+   {
+    "text": "agent",
+    "at": 1718.8
+   },
+   {
+    "text": "reply",
+    "at": 2019.2
+   },
+   {
+    "text": "and",
+    "at": 2800.5
+   },
+   {
+    "text": "nobody",
+    "at": 2944.7
+   },
+   {
+    "text": "uses",
+    "at": 3305.3
+   },
+   {
+    "text": "it",
+    "at": 3677.9
+   },
+   {
+    "text": "Here",
+    "at": 4290.9
+   },
+   {
+    "text": "the",
+    "at": 4459.1
+   },
+   {
+    "text": "accused",
+    "at": 4579.3
+   },
+   {
+    "text": "agent",
+    "at": 5144.2
+   },
+   {
+    "text": "files",
+    "at": 5432.7
+   },
+   {
+    "text": "its",
+    "at": 5757.2
+   },
+   {
+    "text": "own",
+    "at": 5889.4
+   },
+   {
+    "text": "answer",
+    "at": 6033.7
+   },
+   {
+    "text": "sealed",
+    "at": 6766.8
+   },
+   {
+    "text": "the",
+    "at": 7067.3
+   },
+   {
+    "text": "same",
+    "at": 7151.5
+   },
+   {
+    "text": "way",
+    "at": 7439.9
+   },
+   {
+    "text": "so",
+    "at": 8076.9
+   },
+   {
+    "text": "you",
+    "at": 8173.1
+   },
+   {
+    "text": "get",
+    "at": 8269.2
+   },
+   {
+    "text": "both",
+    "at": 8437.5
+   },
+   {
+    "text": "sides",
+    "at": 8677.9
+   }
+  ]
+ },
+ {
+  "i": 10,
+  "tag": "tamper check",
+  "line": "And if someone edits a filing afterwards, say to delete the dispute, the hash changes and it gets dropped.",
+  "file": "10.mp3",
+  "dur": 6048.0,
+  "words": [
+   {
+    "text": "And",
+    "at": 108.2
+   },
+   {
+    "text": "if",
+    "at": 192.3
+   },
+   {
+    "text": "someone",
+    "at": 300.5
+   },
+   {
+    "text": "edits",
+    "at": 649.0
+   },
+   {
+    "text": "a",
+    "at": 913.5
+   },
+   {
+    "text": "filing",
+    "at": 973.5
+   },
+   {
+    "text": "afterwards",
+    "at": 1394.2
+   },
+   {
+    "text": "say",
+    "at": 2259.6
+   },
+   {
+    "text": "to",
+    "at": 2464.0
+   },
+   {
+    "text": "delete",
+    "at": 2584.1
+   },
+   {
+    "text": "the",
+    "at": 2956.8
+   },
+   {
+    "text": "dispute",
+    "at": 3040.9
+   },
+   {
+    "text": "the",
+    "at": 3810.1
+   },
+   {
+    "text": "hash",
+    "at": 3906.2
+   },
+   {
+    "text": "changes",
+    "at": 4182.7
+   },
+   {
+    "text": "and",
+    "at": 4831.8
+   },
+   {
+    "text": "it",
+    "at": 4951.9
+   },
+   {
+    "text": "gets",
+    "at": 5048.1
+   },
+   {
+    "text": "dropped",
+    "at": 5252.4
+   }
+  ]
+ },
+ {
+  "i": 11,
+  "tag": "try it yourself",
+  "line": "You can put any agent id in here and it queries the registry live. Two raters, two filings, both seals checked, and the statements pulled back out.",
+  "file": "11.mp3",
+  "dur": 9048.0,
+  "words": [
+   {
+    "text": "You",
+    "at": 96.2
+   },
+   {
+    "text": "can",
+    "at": 180.3
+   },
+   {
+    "text": "put",
+    "at": 300.5
+   },
+   {
+    "text": "any",
+    "at": 564.9
+   },
+   {
+    "text": "agent",
+    "at": 793.2
+   },
+   {
+    "text": "id",
+    "at": 1105.8
+   },
+   {
+    "text": "in",
+    "at": 1514.4
+   },
+   {
+    "text": "here",
+    "at": 1610.6
+   },
+   {
+    "text": "and",
+    "at": 2139.4
+   },
+   {
+    "text": "it",
+    "at": 2223.5
+   },
+   {
+    "text": "queries",
+    "at": 2319.7
+   },
+   {
+    "text": "the",
+    "at": 2752.4
+   },
+   {
+    "text": "registry",
+    "at": 2848.5
+   },
+   {
+    "text": "live",
+    "at": 3293.2
+   },
+   {
+    "text": "Two",
+    "at": 4086.5
+   },
+   {
+    "text": "raters",
+    "at": 4254.8
+   },
+   {
+    "text": "two",
+    "at": 4988.0
+   },
+   {
+    "text": "filings",
+    "at": 5180.3
+   },
+   {
+    "text": "both",
+    "at": 6021.6
+   },
+   {
+    "text": "seals",
+    "at": 6274.0
+   },
+   {
+    "text": "checked",
+    "at": 6610.6
+   },
+   {
+    "text": "and",
+    "at": 7307.7
+   },
+   {
+    "text": "the",
+    "at": 7367.8
+   },
+   {
+    "text": "statements",
+    "at": 7451.9
+   },
+   {
+    "text": "pulled",
+    "at": 7920.7
+   },
+   {
+    "text": "back",
+    "at": 8173.1
+   },
+   {
+    "text": "out",
+    "at": 8437.5
+   }
+  ]
+ },
+ {
+  "i": 12,
+  "tag": "sibyl memory",
+  "line": "Underneath it's Sibyl Memory. Five tiers, one row per counterparty, and a journal that only gets added to. So a dispute it quotes is a record it actually holds.",
+  "file": "12.mp3",
+  "dur": 10008.0,
+  "words": [
+   {
+    "text": "Underneath",
+    "at": 96.2
+   },
+   {
+    "text": "it's",
+    "at": 673.1
+   },
+   {
+    "text": "Sibyl",
+    "at": 817.3
+   },
+   {
+    "text": "Memory",
+    "at": 1105.8
+   },
+   {
+    "text": "Five",
+    "at": 1983.2
+   },
+   {
+    "text": "tiers",
+    "at": 2235.6
+   },
+   {
+    "text": "one",
+    "at": 2992.8
+   },
+   {
+    "text": "row",
+    "at": 3293.2
+   },
+   {
+    "text": "per",
+    "at": 3569.7
+   },
+   {
+    "text": "counterparty",
+    "at": 3738.0
+   },
+   {
+    "text": "and",
+    "at": 4711.5
+   },
+   {
+    "text": "a",
+    "at": 4831.8
+   },
+   {
+    "text": "journal",
+    "at": 4891.8
+   },
+   {
+    "text": "that",
+    "at": 5300.5
+   },
+   {
+    "text": "only",
+    "at": 5444.7
+   },
+   {
+    "text": "gets",
+    "at": 5709.1
+   },
+   {
+    "text": "added",
+    "at": 5949.5
+   },
+   {
+    "text": "to",
+    "at": 6262.0
+   },
+   {
+    "text": "So",
+    "at": 6911.0
+   },
+   {
+    "text": "a",
+    "at": 7067.3
+   },
+   {
+    "text": "dispute",
+    "at": 7115.4
+   },
+   {
+    "text": "it",
+    "at": 7536.0
+   },
+   {
+    "text": "quotes",
+    "at": 7632.2
+   },
+   {
+    "text": "is",
+    "at": 8173.1
+   },
+   {
+    "text": "a",
+    "at": 8269.2
+   },
+   {
+    "text": "record",
+    "at": 8329.3
+   },
+   {
+    "text": "it",
+    "at": 8701.9
+   },
+   {
+    "text": "actually",
+    "at": 8810.1
+   },
+   {
+    "text": "holds",
+    "at": 9182.7
+   }
+  ]
+ },
+ {
+  "i": 13,
+  "tag": "the stack",
+  "line": "Every filing is a real transaction on Base, and Vouch sells the check as a service on Virtuals ACP, so another agent can just buy one.",
+  "file": "13.mp3",
+  "dur": 8664.0,
+  "words": [
+   {
+    "text": "Every",
+    "at": 96.2
+   },
+   {
+    "text": "filing",
+    "at": 336.5
+   },
+   {
+    "text": "is",
+    "at": 853.4
+   },
+   {
+    "text": "a",
+    "at": 997.6
+   },
+   {
+    "text": "real",
+    "at": 1069.7
+   },
+   {
+    "text": "transaction",
+    "at": 1442.3
+   },
+   {
+    "text": "on",
+    "at": 2139.4
+   },
+   {
+    "text": "Base",
+    "at": 2295.7
+   },
+   {
+    "text": "and",
+    "at": 2968.8
+   },
+   {
+    "text": "Vouch",
+    "at": 3113.0
+   },
+   {
+    "text": "sells",
+    "at": 3449.5
+   },
+   {
+    "text": "the",
+    "at": 3762.0
+   },
+   {
+    "text": "check",
+    "at": 3870.2
+   },
+   {
+    "text": "as",
+    "at": 4254.8
+   },
+   {
+    "text": "a",
+    "at": 4387.0
+   },
+   {
+    "text": "service",
+    "at": 4447.1
+   },
+   {
+    "text": "on",
+    "at": 4927.9
+   },
+   {
+    "text": "Virtuals",
+    "at": 5072.1
+   },
+   {
+    "text": "ACP",
+    "at": 5673.1
+   },
+   {
+    "text": "so",
+    "at": 6634.6
+   },
+   {
+    "text": "another",
+    "at": 6802.9
+   },
+   {
+    "text": "agent",
+    "at": 7115.4
+   },
+   {
+    "text": "can",
+    "at": 7536.0
+   },
+   {
+    "text": "just",
+    "at": 7680.3
+   },
+   {
+    "text": "buy",
+    "at": 7896.6
+   },
+   {
+    "text": "one",
+    "at": 8052.9
+   }
+  ]
+ },
+ {
+  "i": 14,
+  "tag": "vouch",
+  "line": "Everyone's building agents that remember. I built the part that lets them tell each other.",
+  "file": "14.mp3",
+  "dur": 4536.0,
+  "words": [
+   {
+    "text": "Everyone's",
+    "at": 96.2
+   },
+   {
+    "text": "building",
+    "at": 552.9
+   },
+   {
+    "text": "agents",
+    "at": 961.5
+   },
+   {
+    "text": "that",
+    "at": 1334.1
+   },
+   {
+    "text": "remember",
+    "at": 1478.4
+   },
+   {
+    "text": "I",
+    "at": 2331.8
+   },
+   {
+    "text": "built",
+    "at": 2415.9
+   },
+   {
+    "text": "the",
+    "at": 2656.2
+   },
+   {
+    "text": "part",
+    "at": 2764.4
+   },
+   {
+    "text": "that",
+    "at": 3064.9
+   },
+   {
+    "text": "lets",
+    "at": 3221.2
+   },
+   {
+    "text": "them",
+    "at": 3413.5
+   },
+   {
+    "text": "tell",
+    "at": 3545.7
+   },
+   {
+    "text": "each",
+    "at": 3738.0
+   },
+   {
+    "text": "other",
+    "at": 3894.2
+   }
+  ]
+ }
+]

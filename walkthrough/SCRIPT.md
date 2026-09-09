@@ -1,99 +1,26 @@
-# Vouch demo, voiceover script
+# Vouch demo, narration
 
-Every line below is on screen as a caption while the video plays, and each word
-lights up as it is meant to be spoken. Read along with the highlight and you stay
-in time without watching a clock. The small grey line under each caption is a
-section marker for your own place keeping, do not read it out.
+This is what is spoken in `vouch-demo.mp4`, and it is also what appears as the
+caption, one word lit at a time. The voice in the file is a synthesised one
+(en-US-AndrewNeural), so if you would rather use your own, record against these
+timings and the highlight still lines up.
 
-This is the full walkthrough, `vouch-demo.mp4`. Use it for the hackathon
-submission form. It is too long for an X account without Premium.
+15 lines, 353 words, 112 seconds of speech in a 2:30 video.
 
-22 lines, 568 words, 4 minutes 58 seconds. Paced at 152 words a minute.
-
-**1. the problem**
-
-Agents are hiring other agents now. It is happening on Base today. One agent posts a job, another one takes it, money moves, and no person checks any of it.
-
-**2. the standard**
-
-So they run into the question you get on eBay. Can I trust this one. There is a standard for that, ERC-8004, and it puts a reputation score for every agent on chain.
-
-**3. the gap**
-
-But I read the spec and found two fields at the end. One holds a link to what actually happened. The other holds a fingerprint that proves the account was not edited later. Both are optional. Both are empty, everywhere I looked.
-
-**4. memory is load-bearing**
-
-Before I show you any of that, the hackathon has one test. Take the memory layer out, and if your project still works, you are out. I turned that test into a switch.
-
-**5. fresh session**
-
-Memory is on right now. This agent has never dealt with newcomer, but two other agents filed reports about them, so it says no.
-
-**6. the test**
-
-Watch what happens when I switch the memory off.
-
-**7. memory deleted**
-
-Same code. Same counterparty. Same request. Now it quotes the standard price, because with no memory there is nothing to score, nothing to seal and nothing to publish. A fraudster and a saint get the same quote.
-
-**8. the gate**
-
-Switch it back on and it refuses again. That is the point. It does not get worse without memory. It stops existing.
-
-**9. no local state**
-
-This browser has never seen any of these agents before. Everything on this page is read off the chain and checked on your own machine.
-
-**10. coordination**
-
-These are filings other agents published about the same counterparty. Two of them, from two separate wallets that cannot read each other's memory.
-
-**11. verified in your browser**
-
-For each one your browser downloads the file and hashes it again. The seal on chain, and the seal computed here. They match, so the filing is admitted. Nothing here asks you to take my word for it.
-
-**12. appendresponse**
-
-The standard also ships a right of reply. As far as I can tell, nobody uses it. So I did. The accused agent files its own account, sealed the same way.
-
-**13. both sides**
-
-Now both sides are on the record. A record with only the accuser on it is a rumour. With both of them sealed, it is evidence.
-
-**14. tamper check**
-
-Which raises the obvious question. Could someone just fake this?
-
-**15. seal broken**
-
-So I take a real filing, edit it in the browser to erase the dispute, and hash it again. One field changed and the seal moves. It gets thrown out. Your browser computed both of those hashes.
-
-**16. try it yourself**
-
-You can run this against any agent id on the registry.
-
-**17. live, nothing cached**
-
-It is querying the registry now. Pulling the logs, fetching each evidence file, and hashing it here.
-
-**18. live query**
-
-Two raters, two filings, two seals verified, and the testimony pulled back out of them. Not a score. The account behind it.
-
-**19. sibyl memory**
-
-All of this sits on Sibyl Memory. Five tiers, one row for each counterparty, duplicates blocked by the schema itself, and a journal that only ever gets added to.
-
-**20. append only**
-
-So when the agent cites a dispute, it is quoting a record. It is not making one up.
-
-**21. base and virtuals acp**
-
-Every filing you just saw is a real transaction on Base. And Vouch sells this as a live service on Virtuals ACP, so any agent can buy a counterparty check instead of running one.
-
-**22. vouch**
-
-Everyone here is building agents that remember. I built the layer that lets them tell each other.
+| # | at | section | line |
+|---|---|---|---|
+| 1 | 0:01.6 | the setup | Agents are hiring other agents on Base. There's a standard for reputation called ERC 8004, and it stores a score for each agent. |
+| 2 | 0:10.6 | the gap | There are two fields for the evidence behind that score. A link, and a hash. I went looking, and they're empty everywhere. So you get a number with nothing you can actually check. |
+| 3 | 0:21.7 | memory on | So I filled them. This agent has never worked with newcomer, but two other agents filed reports about them, and it can read those. It says no. |
+| 4 | 0:30.1 | fresh browser | And this is a fresh browser. It has never seen these agents. Everything you're looking at is read off the chain right here. |
+| 5 | 0:36.7 | the test | Now watch. I'm switching its memory off. |
+| 6 | 0:41.2 | memory deleted | Same code, same request, and it takes the job at full price. There's nothing to look up, so everybody looks fine. |
+| 7 | 0:49.8 | memory back on | Turn it back on and it refuses again. This isn't a feature that gets worse without memory. There's nothing left of it. |
+| 8 | 0:58.0 | checked in your browser | Your browser downloads each filing and hashes it itself. The hash that's on chain, and the hash it just worked out. They match, so the filing counts. |
+| 9 | 1:07.2 | two wallets | The two reports came from separate wallets that can't see each other's memory. They only line up because both of them are on the registry. |
+| 10 | 1:16.3 | both sides | The standard also lets a rated agent reply, and nobody uses it. Here the accused agent files its own answer, sealed the same way, so you get both sides. |
+| 11 | 1:30.0 | tamper check | And if someone edits a filing afterwards, say to delete the dispute, the hash changes and it gets dropped. |
+| 12 | 1:48.3 | try it yourself | You can put any agent id in here and it queries the registry live. Two raters, two filings, both seals checked, and the statements pulled back out. |
+| 13 | 1:59.1 | sibyl memory | Underneath it's Sibyl Memory. Five tiers, one row per counterparty, and a journal that only gets added to. So a dispute it quotes is a record it actually holds. |
+| 14 | 2:10.9 | the stack | Every filing is a real transaction on Base, and Vouch sells the check as a service on Virtuals ACP, so another agent can just buy one. |
+| 15 | 2:21.6 | vouch | Everyone's building agents that remember. I built the part that lets them tell each other. |

@@ -12,3 +12,5 @@ node_modules/
 evidence_out/
 .acp-token
 web/*.mjs
+walkthrough/final/
+walkthrough/audio/*.mp3

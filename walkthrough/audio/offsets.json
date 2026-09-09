@@ -1,0 +1,92 @@
+[
+ {
+  "i": 0,
+  "tag": "the setup",
+  "at": 1610,
+  "dur": 8592
+ },
+ {
+  "i": 1,
+  "tag": "the gap",
+  "at": 10628,
+  "dur": 9312
+ },
+ {
+  "i": 2,
+  "tag": "memory on",
+  "at": 21743,
+  "dur": 7968
+ },
+ {
+  "i": 3,
+  "tag": "fresh browser",
+  "at": 30100,
+  "dur": 6264
+ },
+ {
+  "i": 4,
+  "tag": "the test",
+  "at": 36722,
+  "dur": 2688
+ },
+ {
+  "i": 5,
+  "tag": "memory deleted",
+  "at": 41236,
+  "dur": 6744
+ },
+ {
+  "i": 6,
+  "tag": "memory back on",
+  "at": 49807,
+  "dur": 6432
+ },
+ {
+  "i": 7,
+  "tag": "checked in your browser",
+  "at": 58005,
+  "dur": 8880
+ },
+ {
+  "i": 8,
+  "tag": "two wallets",
+  "at": 67236,
+  "dur": 7248
+ },
+ {
+  "i": 9,
+  "tag": "both sides",
+  "at": 76256,
+  "dur": 9552
+ },
+ {
+  "i": 10,
+  "tag": "tamper check",
+  "at": 90024,
+  "dur": 6048
+ },
+ {
+  "i": 11,
+  "tag": "try it yourself",
+  "at": 108310,
+  "dur": 9048
+ },
+ {
+  "i": 12,
+  "tag": "sibyl memory",
+  "at": 119135,
+  "dur": 10008
+ },
+ {
+  "i": 13,
+  "tag": "the stack",
+  "at": 130910,
+  "dur": 8664
+ },
+ {
+  "i": 14,
+  "tag": "vouch",
+  "at": 141559,
+  "dur": 4536
+ }
+]
