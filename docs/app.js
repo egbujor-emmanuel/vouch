@@ -47,6 +47,11 @@ async function rpc(method, params) {
       if (!res.ok) throw new Error("HTTP " + res.status);
       const j = await res.json();
       if (j.error) throw new Error(j.error.message || "rpc error");
+      // A throttled endpoint can answer 200 with a null result and no error
+      // object. Reading that as an answer is how a lookup ends up reporting
+      // "could not reach the registry" while two other endpoints sit unused —
+      // none of the calls this page makes has a legitimate null result.
+      if (j.result === null || j.result === undefined) throw new Error("empty result");
       RPC_OK = url;
       return j.result;
     } catch (e) {
@@ -511,6 +516,7 @@ const abiUint = (n) => BigInt(n).toString(16).padStart(64, "0");
 const ethCall = (to, data) => rpc("eth_call", [{ to, data }, "latest"]);
 
 function decodeAddressArray(hex) {
+  if (!hex) return [];
   const d = hex.slice(2);
   if (d.length < 128) return [];
   const off = Number(BigInt("0x" + d.slice(0, 64))) * 2;
@@ -530,10 +536,15 @@ let USER_SEQ = 0;
 
 async function inspect(agentId, reveal = false) {
   const box = $("inspect");
-  const seq = ++INSPECT_SEQ;
   const asked = reveal;
+  // Once somebody has asked for a lookup, the query the page runs on load has
+  // nothing left to say. It returns here rather than taking a turn it would
+  // then be forbidden to write, which is how an earlier version of this guard
+  // managed to silence both of them and leave the panel on its progress line.
+  if (!asked && USER_SEQ > 0) return;
   if (asked) USER_SEQ++;
-  const mine = () => seq === INSPECT_SEQ && (asked || USER_SEQ === 0);
+  const seq = ++INSPECT_SEQ;
+  const mine = () => seq === INSPECT_SEQ;
   const say = (m) => {
     if (mine()) box.innerHTML = `<div class="empty blink">${esc(m)}</div>`;
   };
