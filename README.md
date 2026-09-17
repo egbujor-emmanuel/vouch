@@ -6,6 +6,8 @@ There is a reputation standard on Base — [ERC-8004](https://eips.ethereum.org/
 it is live today. It stores a *number*: a 4.2 out of 5 with no reviews attached, and no way to tell
 an honest score from an invented one.
 
+USDC(BASE): 0x7a399c80884c21084d65bca2f31b4baac814459e
+
 Read the spec and you find why. `giveFeedback` takes two fields for the story behind the score:
 
 ```solidity
